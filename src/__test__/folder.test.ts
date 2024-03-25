@@ -1,4 +1,4 @@
-import { Folder } from "../class/Folder";
+import { Folder } from "../class/folder";
 import { describe, test, expect } from "vitest";
 import { BlobFile } from "../class/blobFile";
 const crypto = require("crypto");
