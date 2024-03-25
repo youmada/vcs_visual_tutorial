@@ -11,7 +11,6 @@ describe("indexクラスのテスト", () => {
 
   test("メソッドテスト", () => {
     index.addStage(files);
-    console.log(index.stagedFiles);
     expect(index.stagedFiles).toEqual({ test1: files[0], test2: files[1] });
     expect(index.getStagedFiles()).toEqual([index.stagedFiles["test1"], index.stagedFiles["test2"]]);
     index.clearStage();
