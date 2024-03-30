@@ -3,7 +3,7 @@ import { BlobFile } from "../class/blobFile";
 import { describe, test, expect } from "vitest";
 describe("BlobFileのテスト", () => {
   const files = new BlobFile("testFile", "goood", "testFolder");
-  test("init", () => {
+  test("初期化テスト", () => {
     expect(files.name).toBe("testFile");
     expect(files.text).toBe("goood");
     expect(files.path).toBe("testFolder");

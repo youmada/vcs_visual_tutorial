@@ -18,6 +18,7 @@ export class Tree {
 
   addEntry(object: BlobFile | Folder | Tree) {
     this.entry[object.id] = object;
+    this.createId();
   }
 
   createId() {

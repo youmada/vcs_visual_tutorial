@@ -1,14 +1,21 @@
-import { BlobFile } from "./blobFile";
+import { Tree } from "./tree";
 const crypto = require("crypto");
-class Commit {
+/*/
+Commitクラス
+Treeを子要素に取って2回目以降のコミットではparentCommitIDを取り参照できるようにする。
+
+createID(): IDを生成する。
+/*/
+
+export class Commit {
   id: string;
   message: string;
-  commitFiles: BlobFile[];
+  tree: Tree;
   parentCommitId: string | null;
-  constructor(message: string, commitFiles: BlobFile[], parentCommitId: string) {
-    this.id = this.createId();
+  constructor(message: string, tree: Tree, parentCommitId: string | null = null) {
     this.message = message;
-    this.commitFiles = commitFiles;
+    this.tree = tree;
+    this.id = this.createId();
     this.parentCommitId = parentCommitId;
   }
 
@@ -16,9 +23,7 @@ class Commit {
     const currentDate = new Date();
     const user = "tutorialUser";
     const hash = crypto.createHash("sha1");
-    hash.update(currentDate + user);
+    hash.update(currentDate + user + this.message);
     return hash.digest("hex");
   }
 }
-
-export { Commit };

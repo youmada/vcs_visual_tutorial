@@ -12,17 +12,31 @@ describe("Folderクラスのテスト", () => {
   const folder = new Folder("testFolder");
   test("初期化テスト", () => {
     expect(folder.name).toBe("testFolder");
+    expect(folder.path).toBe("/");
     expect(folder.id).toBe(createId("testFolder"));
-    expect(folder.folders).toEqual({});
+    expect(folder.contents).toEqual({});
   });
 
   test("メソッドテスト", () => {
+    // updateName()のテスト
     folder.updateName("updateName");
     expect(folder.name).toBe("updateName");
-    expect(folder.id).toBe(createId("updateName"));
+
+    //createFile()のテスト
     folder.createFile("file", "testFile");
-    expect(folder.folders["file"]).toEqual(new BlobFile("file", "testFile", "updateName"));
-    expect(folder.isCheckSameFile("file")).toBeTruthy;
-    expect(folder.isCheckSameFile("undefined file")).toBeFalsy;
+    expect(folder.contents["file"]).toEqual(new BlobFile("file", "testFile", "updateName"));
+    expect(folder.isCheckSame("file")).toBeTruthy;
+    expect(folder.isCheckSame("undefined file")).toBeFalsy;
+
+    //createFolder()のテスト
+    folder.createFolder("folder2");
+    expect(folder.contents["folder2"]).toEqual(new Folder("folder2", "updateName"));
+    expect(folder.isCheckSame("folder2")).toBeTruthy;
+    expect(folder.isCheckSame("undefined file")).toBeTruthy;
+
+    //updatePath()のテスト
+    folder.updatePath("secondUpdate");
+    expect(folder.contents["file"].path).toBe("secondUpdate");
+    expect(folder.contents["folder2"].path).toBe("secondUpdate");
   });
 });

@@ -10,9 +10,16 @@ describe("indexクラスのテスト", () => {
   });
 
   test("メソッドテスト", () => {
+    //addStage()のテスト
     index.addStage(files);
-    expect(index.stagedFiles).toEqual({ test1: files[0], test2: files[1] });
-    expect(index.getStagedFiles()).toEqual([index.stagedFiles["test1"], index.stagedFiles["test2"]]);
+    expect(index.stagedFiles).toEqual({ [files[0].id]: files[0], [files[1].id]: files[1] });
+
+    //removeStage()のテスト
+    const file = index.stagedFiles[files[0].id];
+    index.removeStage(index.stagedFiles[files[0].id]);
+    expect(index.stagedFiles).not.toContainEqual(file);
+
+    //clearStage()のテスト
     index.clearStage();
     expect(index.stagedFiles).toEqual({});
   });

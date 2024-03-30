@@ -9,7 +9,7 @@ export class BlobFile {
   name: string;
   text: string;
   path: string;
-  constructor(name: string, text: string, path: string) {
+  constructor(name: string, text: string, path: string = "root") {
     this.name = name;
     this.text = text;
     this.id = "";

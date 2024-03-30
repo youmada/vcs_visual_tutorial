@@ -7,22 +7,22 @@ getStagedFile(): ステージングエリアにある全てのファイルを取
 clearStage(): ステージングエリアの情報をクリアする
 /*/
 export class Index {
-  stagedFiles: { [name: string]: BlobFile };
+  stagedFiles: { [id: string]: BlobFile };
   constructor() {
     this.stagedFiles = {};
   }
 
   addStage(files: BlobFile[]) {
     for (const file of files) {
-      this.stagedFiles[file.name] = file;
+      this.stagedFiles[file.id] = file;
     }
-  }
-
-  getStagedFiles(): BlobFile[] {
-    return Object.values(this.stagedFiles);
   }
 
   clearStage() {
     this.stagedFiles = {};
+  }
+
+  removeStage(file: BlobFile) {
+    delete this.stagedFiles[file.id];
   }
 }
