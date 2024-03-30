@@ -34,6 +34,21 @@ describe("Repositoryクラスのテスト", () => {
     expect(repository.index.stagedFiles).toEqual({});
   });
 
+  test("masterブランチ作成と切り替えテスト", () => {
+    const file = new BlobFile("file", "test");
+    file.createId();
+    repository.stage([file]);
+    repository.rootFolder.contents[file.id] = file;
+    expect(repository.branchList).toEqual({});
+    const commitID = repository.commit("test commit");
+    expect(repository.branchList).toEqual({ master: commitID });
+    expect(repository.currentBranch).toEqual("master");
+    repository.createBranch("testBranch", commitID);
+    expect(repository.branchList).toMatchObject({ testBranch: commitID });
+    repository.checkOut("testBranch");
+    expect(repository.currentBranch).toEqual("testBranch");
+  });
+
   test("コミットのテスト", () => {
     const file = new BlobFile("file1", "test text1");
     file.createId();
@@ -66,9 +81,6 @@ describe("Repositoryクラスのテスト", () => {
 });
 
 /*/
-2:gitにコミットする
-3:ブランチの機能を作る
-4:ブランチのテスト
 5:マージの機能作る
 6:マージテスト
 /*/
