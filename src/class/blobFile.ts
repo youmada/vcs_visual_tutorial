@@ -26,8 +26,9 @@ export class BlobFile {
     this.path = path;
   }
 
-  updateText(text: string) {
+  updateText(text: string): string {
     this.text = text;
     this.createId();
+    return this.id;
   }
 }

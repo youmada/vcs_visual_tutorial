@@ -3,7 +3,7 @@ import { Tree } from "../class/tree";
 import { BlobFile } from "../class/blobFile";
 
 describe("Treeオブジェクトのテスト", () => {
-  const tree = new Tree();
+  const tree = new Tree("root");
 
   test("初期化テスト", () => {
     expect(tree.entry).toEqual({});
@@ -15,7 +15,7 @@ describe("Treeオブジェクトのテスト", () => {
     blobFile.createId();
     tree.addEntry(blobFile);
     expect(tree.entry[blobFile.id]).toEqual(blobFile);
-    const subTree = new Tree();
+    const subTree = new Tree("sub");
     subTree.addEntry(blobFile);
     const subTreeId = subTree.id;
     tree.addEntry(subTree);

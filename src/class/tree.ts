@@ -11,9 +11,11 @@ createID(): IDをハッシュ値で生成する。
 export class Tree {
   entry: { [name: string]: BlobFile | Folder | Tree };
   id: string;
-  constructor() {
+  name:string;
+  constructor(name:string) {
     this.entry = {};
     this.id = "";
+    this.name = name;
   }
 
   addEntry(object: BlobFile | Folder | Tree) {

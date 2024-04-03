@@ -17,7 +17,7 @@ export class Folder {
   contents: { [name: string]: BlobFile | Folder };
   id: string;
   path: string;
-  constructor(name: string, path: string = "/") {
+  constructor(name: string, path: string = "root") {
     this.name = name;
     this.contents = {};
     this.id = this.createId();
