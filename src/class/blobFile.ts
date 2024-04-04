@@ -12,14 +12,14 @@ export class BlobFile {
   constructor(name: string, text: string, path: string = "root") {
     this.name = name;
     this.text = text;
-    this.id = "";
     this.path = path;
+    this.id = this.createId();
   }
 
   createId() {
     const hash = crypto.createHash("sha1");
     hash.update(this.name + this.text + this.path);
-    this.id = hash.digest("hex");
+    return hash.digest("hex");
   }
 
   updatePath(path: string) {

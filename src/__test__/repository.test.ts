@@ -7,9 +7,8 @@ import { Commit } from "../class/commit";
 import { Tree } from "../class/tree";
 
 describe("Repositoryクラスのテスト", () => {
-  const repository = new Repository();
-
   test("初期化テスト", () => {
+    const repository = new Repository();
     const folder = new Folder("root");
     const index = new Index();
     expect(repository.rootFolder).toEqual(folder);
@@ -21,129 +20,205 @@ describe("Repositoryクラスのテスト", () => {
   });
 
   test("ステージングテスト", () => {
-    const index = new Index();
-    const file = new BlobFile("file1", "test text1");
-    index.addStage([file]);
+    const repository = new Repository();
+    const file = new BlobFile("stagedTestFile", "ステージングテスト用ファイル");
+    // rootFolderにファイルを登録
+    repository.addFolder(file);
+    // rootFolderにファイルがあるかチェック
+    expect(repository.rootFolder.contents).toEqual({ [file.name]: file });
+    // fileListにファイルがあるかチェック
+    expect(repository.fileList).toEqual({ [file.id]: file });
     repository.stage([file]);
-    expect(repository.index.stagedFiles).toEqual(index.stagedFiles);
+    // ファイルがステージングされたかチェック
+    expect(repository.index.stagedFiles).toEqual({ [file.id]: file });
+    // ステージングを解除
     repository.unstage(file);
     expect(repository.index.stagedFiles).toEqual({});
     repository.stage([file]);
-    expect(repository.index.stagedFiles).toEqual(index.stagedFiles);
+    expect(repository.index.stagedFiles).toEqual({ [file.id]: file });
+    // リセット機能のチェック
     repository.resetStage();
     expect(repository.index.stagedFiles).toEqual({});
   });
 
   test("masterブランチ作成と切り替えテスト", () => {
-    const file = new BlobFile("file", "test");
-    file.createId();
+    const repository = new Repository();
+    const file = new BlobFile("initCommitFile", "初回コミットテスト用ファイル");
+    // ステージングとrootFolderにファイルを入れる。
     repository.stage([file]);
     repository.addFolder(file);
+    // ブランチリストに何もないことをチェック
     expect(repository.branchList).toEqual({});
-    const commitID = repository.commit("test commit");
-    expect(repository.branchList).toEqual({ master: commitID });
+    // masterブランチを作るために初回コミット
+    const initCommitID = repository.commit("初回コミット");
+    expect(repository.head).toBe(initCommitID);
+    // masterブランチができたかチェック
+    expect(repository.branchList).toEqual({ master: initCommitID });
+    // currentBranchをチェック
     expect(repository.currentBranch).toEqual("master");
-    const branchHead = repository.createBranch("testBranch", commitID);
+    // ここでテストブランチを作成する
+    const branchHead = repository.createBranch("testBranch", initCommitID);
     expect(repository.branchList).toMatchObject({ testBranch: branchHead });
+    // testBranchに切り替えるテスト
     repository.checkOut("testBranch");
-    const newFile = new BlobFile("checkoutTestFile", "checkout");
-    newFile.createId();
-    repository.addFolder(newFile);
-    repository.stage([newFile]);
-    repository.commit("チェックアウトのテスト");
+    const testBranchFile = new BlobFile("testBranchFile", "このファイルはtestBranchのファイルで、masterには存在しない。");
+    // testBranchFileをrootFolderに入れる
+    repository.addFolder(testBranchFile);
+    // ブランチを作った際にmasterのファイルを受け継いだか、チェック
+    expect(repository.rootFolder.contents).toMatchObject({ [file.name]: file });
+    // rootFolderのファイルをステージング
+    const files: BlobFile[] = Object.values(repository.rootFolder.contents).filter((entry) => entry instanceof BlobFile) as BlobFile[];
+    repository.stage(files);
+    // コミット
+    const branchCommitID = repository.commit("testBranchでコミット");
     expect(repository.currentBranch).toEqual("testBranch");
+    expect(repository.head).toBe(branchCommitID);
+    // testBranchのrootFolderにファイルがあるか、チェック
+    expect(repository.rootFolder.contents).toMatchObject({ [file.name]: file });
+    expect(repository.rootFolder.contents).toMatchObject({ [testBranchFile.name]: testBranchFile });
+    // masterのrootFolderにファイルがあるか、チェック
     repository.checkOut("master");
     expect(repository.currentBranch).toEqual("master");
-    repository.checkOut("testBranch");
+    expect(repository.rootFolder.contents).toMatchObject({ [file.name]: file });
   });
 
   test("コミットのテスト", () => {
-    const file = new BlobFile("file1", "test text1");
-    file.createId();
+    const repository = new Repository();
+    const file = new BlobFile("commitTestFile", "コミットテスト用ファイル");
+    // ファイルをステージングとrootFolderにセット
     repository.stage([file]);
-    // 通常ではファイルを作成してからステージングするので、rootFolderには何かしらのファイルが存在している。今回は自分で作成する必要がある。
     repository.addFolder(file);
-    const commitID = repository.commit("test commit 1");
-    const commit = repository.commitList[commitID];
-    expect(commit).toBeInstanceOf(Commit);
+    //コミット
+    const commitID = repository.commit("初回コミットテスト");
+    const commitContent = repository.commitList[commitID];
+    // コミットの内容をチェック
+    expect(commitContent).toBeInstanceOf(Commit);
     expect(repository.index).toBeInstanceOf(Index);
-    expect(commit.message).toBe("test commit 1");
-    expect(commit.tree).toBeInstanceOf(Tree);
-    expect(Object.values(repository.treeList)).toContainEqual(commit.tree);
+    expect(commitContent.message).toBeTruthy;
+    expect(commitContent.tree).toBeInstanceOf(Tree);
+    expect(Object.values(repository.treeList)).toContainEqual(commitContent.tree);
     expect(repository.head).toEqual(commitID);
   });
 
   test("複数回コミットテスト", () => {
-    const file2 = new BlobFile("file2", "test text2");
-    file2.createId();
-    repository.stage([file2]);
-    repository.addFolder(file2);
-    const commitID = repository.commit("test commit 2");
-    const commit = repository.commitList[commitID];
-    expect(commit.message).toBe("test commit 2");
-    expect(Object.values(repository.treeList)).toContainEqual(commit.tree);
-    expect(repository.head).toEqual(commitID);
-    expect(commit.parentCommitId).toBeTruthy;
-    expect(repository.commitList[commit.parentCommitId!]).toBeInstanceOf(Commit);
+    const repository = new Repository();
+    const firstFile = new BlobFile("firstFile", "初回コミットファイル");
+    repository.stage([firstFile]);
+    repository.addFolder(firstFile);
+    // 最初のコミット
+    const initCommitID = repository.commit("初回コミット");
+    const initCommit = repository.commitList[initCommitID];
+    // コミットの内容チェック
+    expect(initCommit.message).toBeTruthy;
+    expect(Object.values(repository.treeList)).toContainEqual(initCommit.tree);
+    expect(repository.head).toEqual(initCommitID);
+    // 2回目のコミット firstFileはステージングしない。
+    const secondFile = new BlobFile("secondFile", "2回目のコミットファイル");
+    repository.stage([secondFile]);
+    repository.addFolder(secondFile);
+    expect(repository.rootFolder.contents).toMatchObject({ [firstFile.name]: firstFile });
+    const secondCommitID = repository.commit("2回目のコミット");
+    const secondCommit = repository.commitList[secondCommitID];
+    // コミットの内容チェック
+    expect(secondCommit.parentCommitId).toBe(initCommitID);
+    expect(repository.commitList[secondCommit.parentCommitId!]).toBeInstanceOf(Commit);
+    expect(repository.rootFolder.contents).toMatchObject({ [firstFile.name]: firstFile });
   });
 
-  //   test("マージテスト コンフリクトなし", () => {
-  //     repository.checkOut("master");
-  //     expect(repository.currentBranch).toEqual("master");
-  //     repository.checkOut("testBranch");
-  //     expect(repository.currentBranch).toEqual("testBranch");
-  //     repository.merge("master");
-  //     expect(repository.currentBranch).toEqual("master");
-  //     expect(repository.index).toBeInstanceOf(Index);
-  //     expect(Object.keys(repository.commitList)).toHaveLength(5);
-  //   });
+  test("マージテスト コンフリクトなし", () => {
+    const repository = new Repository();
+    const firstFile = new BlobFile("firstFile", "初回コミットファイル");
+    repository.stage([firstFile]);
+    repository.addFolder(firstFile);
+    // 最初のコミット 1回目
+    const firstCommitID = repository.commit("初回コミット");
+    repository.commitList[firstCommitID];
+    expect(repository.currentBranch).toEqual("master");
+    // testBranchを作成、チェックアウトする 2回目
+    repository.createBranch("testBranch", firstCommitID);
+    repository.checkOut("testBranch");
+    expect(repository.currentBranch).toEqual("testBranch");
+    // マージがわかるように、testBranchで一度コミットする。3回目
+    const secondFile = new BlobFile("secondFile", "2回目のコミットファイル");
+    repository.stage([secondFile]);
+    repository.addFolder(secondFile);
+    expect(repository.rootFolder.contents).toMatchObject({ [firstFile.name]: firstFile });
+    repository.commit("testBranchでのコミット。トータルで2回目になる");
+    expect(repository.currentBranch).toEqual("testBranch");
+    // マージする。 4回目
+    repository.merge("master");
+    expect(repository.currentBranch).toEqual("master");
+    expect(Object.keys(repository.commitList)).toHaveLength(4);
+    expect(repository.rootFolder.contents).toEqual(
+      expect.objectContaining({
+        firstFile: firstFile,
+        secondFile: secondFile,
+      })
+    );
+    // 念のためにチェックアウトした時のrootFolderの中身をチェック
+    repository.checkOut("testBranch");
+    expect(repository.rootFolder.contents).toEqual(
+      expect.objectContaining({
+        secondFile: secondFile,
+      })
+    );
+    repository.checkOut("master");
+    expect(repository.rootFolder.contents).toEqual(
+      expect.objectContaining({
+        firstFile: firstFile,
+        secondFile: secondFile,
+      })
+    );
+  });
 
   //   test("マージテスト コンフリクトあり", () => {
-  //     //マスターブランチから新しいブランチを作成
-  //     repository.checkOut("master");
-  //     repository.createBranch("conflictBranch", repository.head!);
-  //     expect(repository.currentBranch).toEqual("conflictBranch");
-
-  //     // ファイルの変更をコミット
-  //     repository.checkOut("conflictBranch");
-  //     const fileID = Object.values(repository.rootFolder.contents).find((file) => file.name == "file2")?.id;
-  //     const file = repository.rootFolder.contents[fileID!];
-  //     if (file instanceof BlobFile) {
-  //       repository.updateRootFolder(file.id, "conflict text2");
-  //       repository.stage([file]);
-  //     }
-  //     repository.commit("Add file on conflictBranch");
-
-  //     // マスターブランチでファイルを変更
-  //     repository.checkOut("master");
-  //     const fileID2 = Object.values(repository.rootFolder.contents).find((file) => file.name == "file2")?.id;
-  //     const anotherFile = repository.rootFolder.contents[fileID2!];
-  //     if (anotherFile instanceof BlobFile) {
-  //       repository.updateRootFolder(anotherFile.id, "conflict!!!!");
-  //       repository.stage([anotherFile]);
-  //     }
-  //     repository.commit("Modify file on master");
-
-  //     // マージを実行（コンフリクトを引き起こす）
-  //     const spy = vi.spyOn(repository, "resolveConflict");
-  //     spy.mockImplementation((files: BlobFile[]) => {
-  //       let choice = "target";
-  //       console.log("pass");
-  //       for (const file of files) {
-  //         if (choice === "target") {
-  //           repository.stage([file]);
-  //         } else if (choice === "current") {
-  //           repository.stage([file]);
-  //         } else {
-  //           console.log("Invalid choice. File remains un-staged.");
-  //         }
-  //       }
-  //     });
-  //     repository.checkOut("conflictBranch");
-  //     const id = repository.merge("master");
+  //     const repository = new Repository();
+  //     const firstFile = new BlobFile("conflictFile", "コンフリクトファイル");
+  //     repository.stage([firstFile]);
+  //     repository.addFolder(firstFile);
+  //     // 最初のコミット 1回目
+  //     const firstCommitID = repository.commit("初回コミット");
+  //     repository.commitList[firstCommitID];
   //     expect(repository.currentBranch).toEqual("master");
-  //     expect(repository.index).toBeInstanceOf(Index);
-  //     expect(Object.keys(repository.commitList)).toHaveLength(9);
-  //     console.log(repository.commitList[id]);
+  //     // testBranchを作成、チェックアウトする 2回目
+  //     repository.createBranch("testBranch", firstCommitID);
+  //     repository.checkOut("testBranch");
+  //     expect(repository.currentBranch).toEqual("testBranch");
+  //     // コンフリクトを起こすためにtestBranchで一度コミットする。3回目
+  //     const secondFile = new BlobFile("secondFile", "2回目のコミットファイル");
+  //     repository.updateRootFolder("firstFile", "コンフリクトテストtestBranchで編集");
+  //     repository.addFolder(secondFile);
+  //     repository.stage([secondFile, firstFile]);
+  //     expect(repository.rootFolder.contents).toMatchObject({ [firstFile.name]: firstFile });
+  //     repository.commit("testBranchでのコミット。トータルで3回目になる");
+  //     expect(repository.currentBranch).toEqual("testBranch");
+
+  //     // 4回目のコミットをするためにmasterブランチに切り替えて、firstFileを編集。
+  //     repository.checkOut("master");
+  //     expect(repository.currentBranch).toEqual("master");
+  //     repository.updateRootFolder("firstFile", "コンフリクトテストmasterブランチで編集");
+  //     repository.stage([firstFile]);
+  //     repository.commit("5回目のコミットmasterブランチにて、コンフリクトを起こすためにfirstFileを編集");
+
+  //     // マージするためにtestBranchに移動して、マージする。コンフリクトが起こる。
+  //     repository.checkOut("testBranch");
+  //     repository.merge("master");
+  //     // mergeしたので、masterに切り替わる
+  //     expect(repository.currentBranch).toBe("master");
+  //     expect(repository.rootFolder.contents).toEqual(
+  //       expect.objectContaining({
+  //         firstFile: firstFile,
+  //         secondFile: secondFile,
+  //       })
+  //     );
+  //     const conflictFile: BlobFile = repository.rootFolder.contents["firstFile"] as BlobFile;
+  //     expect(conflictFile.text).toBe("コンフリクトテストmasterブランチで編集");
   //   });
 });
+
+/*/
+現状：conflictBranchを作成できるが、treeにファイル情報が入らない。
+console.log()で見たところ、createranch()のfilesにはファイルがあり、rootFolderとindexにも存在している。
+しかし、なぜかtreeにだけ格納されない。generateTree()が怪しい
+
+/*/

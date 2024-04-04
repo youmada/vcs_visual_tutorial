@@ -43,7 +43,8 @@ export class Repository {
   }
 
   addFolder(content: Folder | BlobFile) {
-    this.rootFolder.contents[content.id] = content;
+    content.createId();
+    this.rootFolder.contents[content.name] = content;
     if (content instanceof BlobFile) {
       this.addFileList(content);
     }
@@ -53,14 +54,14 @@ export class Repository {
     this.fileList[file.id] = file;
   }
 
-  updateRootFolder(fileID: string, content: string): void {
-    const file = this.rootFolder.contents[fileID];
+  updateRootFolder(fileName: string, content: string): void {
+    const file = this.rootFolder.contents[fileName];
     if (file instanceof BlobFile) {
       file.updateText(content);
       this.addFolder(file);
-      delete this.rootFolder.contents[fileID];
+      delete this.rootFolder.contents[fileName];
     } else {
-      console.log(`${fileID} does not exist or is not a BlobFile.`);
+      console.log(`${fileName} does not exist or is not a BlobFile.`);
     }
   }
 
@@ -76,6 +77,8 @@ export class Repository {
         }
       });
       this.stage(files);
+      // console.log(this.rootFolder.contents);
+      // console.log(this.index);
       const head = this.commit(`${name} branch created`);
       this.branchList[name] = head;
       return head;
@@ -100,9 +103,8 @@ export class Repository {
       this.currentBranch = name;
       this.head = this.branchList[name];
       const tree = this.commitList[this.head].tree;
-      this.rootFolder = this.buildRootFolder(tree, this.rootFolder);
-      console.log(`branchName: ${name}`);
-      console.log(this.rootFolder.contents);
+      this.rootFolder.contents = {};
+      this.buildRootFolder(tree, this.rootFolder);
       return this.currentBranch;
     } else return null;
   }
@@ -134,23 +136,23 @@ export class Repository {
     if (baseCommit == null) return "no baseCommit";
 
     const changeFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit);
-    console.log(changeFiles);
     let commitID;
+    this.currentBranch = branchName;
     if (changeFiles[1].length === 0) {
       this.stage(changeFiles[0]);
       commitID = this.commit(`merge ${this.currentBranch} to ${branchName}`);
     } else {
-      console.log("passed2");
-      this.resolveConflict(changeFiles[1]);
+      this.resolveConflict(changeFiles[1], targetCommit, currentCommit);
       commitID = this.commit(`merge ${this.currentBranch} to ${branchName}`);
     }
+    // コミットはすでにできている
     this.checkOut(branchName);
     return commitID;
   }
 
-  resolveConflict(files: BlobFile[]): void {
+  resolveConflict(files: BlobFile[], targetCommitID: string, currentCommitID: string): void {
+    // filesには配列でオブジェクトが入っている
     // ユーザーに選択肢を表示し、選択されたファイルをステージングする
-    console.log("passed");
     for (const file of files) {
       const choice = prompt(`Which content do you want to stage for file ${file.name}? (target/current)`);
       if (choice === "target") {
@@ -170,8 +172,6 @@ export class Repository {
     const baseCommit = this.commitList[base];
     const targetCommit = this.commitList[target];
     const currentCommit = this.commitList[current];
-    // console.log(baseCommit);
-    // console.log(targetCommit);
     // console.log(currentCommit);
 
     const baseFiles: { [name: string]: BlobFile } = {};
@@ -194,6 +194,9 @@ export class Repository {
       }
     });
 
+    // console.log(currentFiles);
+    // console.log(targetFiles);
+
     // currentとtargetの独自のファイルを抽出。
     for (const fileName in currentFiles) {
       if (!targetFiles[fileName]) changeFiles.push(currentFiles[fileName]);
@@ -204,6 +207,7 @@ export class Repository {
     }
 
     // 共通のファイルを取得
+    // おそらく現状、currentとtargetでそれぞれ新しく同じ名前のファイルを作った場合、コンフリクトが起きない。
     const commonFiles: { [name: string]: BlobFile } = {};
     for (const file in baseFiles) {
       if (currentFiles[file] && targetFiles[file]) {
@@ -229,16 +233,8 @@ export class Repository {
       }
     }
 
-    // ファイル内容の変更を検出
-    for (const fileName in currentFiles) {
-      if (!targetFiles[fileName]) changeFiles.push(currentFiles[fileName]);
-    }
-
-    for (const fileName in targetFiles) {
-      if (!currentFiles[fileName]) changeFiles.push(targetFiles[fileName]);
-    }
-
-    // console.log(`changeFiles: ${changeFiles}`);
+    // console.log(`changeFiles: `);
+    // console.log(changeFiles);
     // console.log(`conflictFiles: ${conflictFiles}`);
 
     return [changeFiles, conflictFiles];
@@ -285,9 +281,34 @@ export class Repository {
   generateTree(folder: Folder): Tree {
     const tree = new Tree(folder.name);
     const entries = Object.entries(folder.contents);
+    // console.log("_____________________________");
+    // console.log(this.index.stagedFiles);
+    // console.log("_____________________________");
     for (const [id, entry] of entries) {
-      if (entry instanceof BlobFile && this.index.stagedFiles[id]) {
-        tree.addEntry(entry);
+      if (entry instanceof BlobFile) {
+        if (this.index.stagedFiles[entry.id]) {
+          // console.log(entry);
+          tree.addEntry(entry);
+        } else {
+          if (this.head !== null) {
+            //親コミットIDを探す。
+            const parentID = this.commitList[this.head].parentCommitId;
+            if (parentID == null) {
+              const tree = this.commitList[this.head].tree;
+              const file = this.searchTree(entry.id, tree);
+              if (file !== null) {
+                tree.addEntry(file);
+              }
+            } else {
+              const parentTree = this.commitList[parentID].tree;
+              // this.headがnullでない以上、parentIDは必ず存在する。
+              const file = this.searchTree(entry.id, parentTree);
+              if (file !== null) {
+                tree.addEntry(file);
+              }
+            }
+          }
+        }
       } else if (entry instanceof Folder) {
         const subTree = this.generateTree(entry);
         if (subTree) {
@@ -296,6 +317,21 @@ export class Repository {
       }
     }
     return tree;
+  }
+
+  searchTree(id: string, tree: Tree): BlobFile | null {
+    for (const key in tree.entry) {
+      const entry = tree.entry[key];
+      if (key === id && entry instanceof BlobFile) {
+        return entry;
+      } else if (entry instanceof Tree) {
+        const found = this.searchTree(id, entry);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
   }
 
   generateRepositoryTree(): Tree {

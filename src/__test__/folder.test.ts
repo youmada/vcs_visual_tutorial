@@ -12,7 +12,7 @@ describe("Folderクラスのテスト", () => {
   const folder = new Folder("testFolder");
   test("初期化テスト", () => {
     expect(folder.name).toBe("testFolder");
-    expect(folder.path).toBe("/");
+    expect(folder.path).toBe("root");
     expect(folder.id).toBe(createId("testFolder"));
     expect(folder.contents).toEqual({});
   });
