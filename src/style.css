@@ -44,8 +44,8 @@ h1 {
   width: 50%;
   height: 100%;
   border-right: 1px solid #ccc;
-  padding: 20px; /* 適切なスペースを追加 */
-  box-sizing: border-box; /* paddingを含めた要素の幅を調整 */
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .right {
@@ -57,14 +57,14 @@ h1 {
 .top {
   flex: 4;
   border-bottom: 1px solid #ccc;
-  padding: 20px; /* 適切なスペースを追加 */
-  box-sizing: border-box; /* paddingを含めた要素の高さを調整 */
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .bottom {
   flex: 6;
-  padding: 20px; /* 適切なスペースを追加 */
-  box-sizing: border-box; /* paddingを含めた要素の高さを調整 */
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 @media (prefers-color-scheme: light) {
