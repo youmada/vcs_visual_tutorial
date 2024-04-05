@@ -1,16 +1,18 @@
 import { describe, test, expect } from "vitest";
+global.crypto = require("crypto");
 import { Commit } from "../class/commit";
 import { Tree } from "../class/tree";
-describe("commitクラスのテスト", () => {
-  const tree = new Tree();
-  const tree2 = new Tree();
-  const firstCommit = new Commit("test commit1", tree);
-  const secondCommit = new Commit("commit 2", tree2, firstCommit.id);
+describe("commitクラスのテスト", async () => {
+  const tree = await Tree.init("tree1");
+  const tree2 = await Tree.init("tree2");
+  const firstCommit = await Commit.init("最初のコミット", tree);
+  const secondCommit = await Commit.init("2回目のコミット", tree2, firstCommit.getId());
+
   test("初期化テスト", () => {
-    expect(firstCommit.message).toBe("test commit1");
-    expect(firstCommit.id);
+    expect(firstCommit.message).toBe("最初のコミット");
+    expect(firstCommit.getId()).toBeTypeOf("string");
     expect(firstCommit.tree).toBe(tree);
-    expect(firstCommit.parentCommitId).toBe(null);
-    expect(secondCommit.parentCommitId).toBe(firstCommit.id);
+    expect(firstCommit.getParentId()).toBe(null);
+    expect(secondCommit.getParentId()).toBe(firstCommit.getId());
   });
 });

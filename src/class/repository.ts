@@ -6,11 +6,11 @@ Repository
 import { Index } from ".";
 import { BlobFile } from "./blobFile";
 import { Commit } from "./commit";
+import { Contents } from "./contents";
 import { Folder } from "./folder";
 import { Tree } from "./tree";
 
 export class Repository {
-  rootFolder: Folder;
   index: Index;
   head: string | null;
   commitList: { [name: string]: Commit };
@@ -20,7 +20,6 @@ export class Repository {
   currentBranch: string;
 
   constructor() {
-    this.rootFolder = new Folder("root");
     this.index = new Index();
     this.head = null;
     this.commitList = {};
@@ -28,6 +27,11 @@ export class Repository {
     this.treeList = {};
     this.branchList = {};
     this.currentBranch = "";
+  }
+
+  static init() {
+    const repository = new Repository();
+    return repository;
   }
 
   stage(files: BlobFile[]) {
@@ -42,31 +46,12 @@ export class Repository {
     this.index.clearStage();
   }
 
-  addFolder(content: Folder | BlobFile) {
-    content.createId();
-    this.rootFolder.contents[content.name] = content;
-    if (content instanceof BlobFile) {
-      this.addFileList(content);
-    }
-  }
-
   addFileList(file: BlobFile) {
-    this.fileList[file.id] = file;
-  }
-
-  updateRootFolder(fileName: string, content: string): void {
-    const file = this.rootFolder.contents[fileName];
-    if (file instanceof BlobFile) {
-      file.updateText(content);
-      this.addFolder(file);
-      delete this.rootFolder.contents[fileName];
-    } else {
-      console.log(`${fileName} does not exist or is not a BlobFile.`);
-    }
+    this.fileList[file.getId()] = file;
   }
 
   // idは親コミットのID
-  createBranch(name: string, id: string) {
+  async createBranch(name: string, id: string) {
     if (!this.checkBranch(name)) {
       this.currentBranch = name;
       const parentCommit = this.commitList[id];
@@ -77,10 +62,8 @@ export class Repository {
         }
       });
       this.stage(files);
-      // console.log(this.rootFolder.contents);
-      // console.log(this.index);
-      const head = this.commit(`${name} branch created`);
-      this.branchList[name] = head;
+      const head = await this.commit(`${name} branch created`);
+      this.branchList[name] = head!;
       return head;
     } else return "same name branch is already";
   }
@@ -103,23 +86,8 @@ export class Repository {
       this.currentBranch = name;
       this.head = this.branchList[name];
       const tree = this.commitList[this.head].tree;
-      this.rootFolder.contents = {};
-      this.buildRootFolder(tree, this.rootFolder);
       return this.currentBranch;
     } else return null;
-  }
-
-  buildRootFolder(tree: Tree, parentFolder: Folder) {
-    for (const entry of Object.values(tree.entry)) {
-      if (entry instanceof BlobFile) {
-        parentFolder.contents[entry.name] = entry;
-      } else if (entry instanceof Tree) {
-        const folder = new Folder(entry.name);
-        parentFolder.contents[entry.name] = folder;
-        this.buildRootFolder(entry, folder);
-      }
-    }
-    return parentFolder;
   }
 
   merge(branchName: string) {
@@ -194,9 +162,6 @@ export class Repository {
       }
     });
 
-    // console.log(currentFiles);
-    // console.log(targetFiles);
-
     // currentとtargetの独自のファイルを抽出。
     for (const fileName in currentFiles) {
       if (!targetFiles[fileName]) changeFiles.push(currentFiles[fileName]);
@@ -214,7 +179,6 @@ export class Repository {
         commonFiles[file] = baseFiles[file];
       }
     }
-    // console.log(`commonFiles: ${Object.keys(commonFiles)}`);
 
     // コンフリクトを検出
     for (const fileName in commonFiles) {
@@ -233,10 +197,6 @@ export class Repository {
       }
     }
 
-    // console.log(`changeFiles: `);
-    // console.log(changeFiles);
-    // console.log(`conflictFiles: ${conflictFiles}`);
-
     return [changeFiles, conflictFiles];
   }
 
@@ -246,63 +206,60 @@ export class Repository {
 
     let currentCommit = this.commitList[currentCommitID!];
     while (currentCommit) {
-      currentCommitParents.add(currentCommit.id);
-      currentCommit = this.commitList[currentCommit.parentCommitId!];
+      currentCommitParents.add(currentCommit.getId());
+      currentCommit = this.commitList[currentCommit.getParentId()!];
     }
 
     let targetCommit = this.commitList[targetCommitID!];
     while (targetCommit) {
-      if (currentCommitParents.has(targetCommit.id)) {
-        return targetCommit.id;
+      if (currentCommitParents.has(targetCommit.getId())) {
+        return targetCommit.getId();
       }
-      targetCommitParents.add(targetCommit.id);
-      targetCommit = this.commitList[targetCommit.parentCommitId!];
+      targetCommitParents.add(targetCommit.getId());
+      targetCommit = this.commitList[targetCommit.getParentId()!];
     }
 
     return null;
   }
 
-  commit(message: string) {
-    const newTree = this.generateRepositoryTree();
-    this.treeList[newTree.id] = newTree;
-    const newCommit = new Commit(message, newTree, this.head);
-    this.commitList[newCommit.id] = newCommit;
+  async commit(message: string) {
+    const newTree = await this.generateRepositoryTree();
+    this.treeList[newTree.getId()] = newTree;
+    const newCommit = await Commit.init(message, newTree, this.head);
+    this.commitList[newCommit.getId()] = newCommit;
     if (this.checkBranch("master")) {
-      this.branchList[this.currentBranch] = newCommit.id;
+      this.branchList[this.currentBranch] = newCommit.getId();
     } else {
-      this.branchList["master"] = newCommit.id;
+      this.branchList["master"] = newCommit.getId();
       this.currentBranch = "master";
     }
-    this.head = newCommit.id;
+    this.head = newCommit.getId();
     this.index.clearStage();
-    return newCommit.id;
+    return newCommit.getId();
   }
 
-  generateTree(folder: Folder): Tree {
-    const tree = new Tree(folder.name);
+  async generateTree(folder: Folder): Promise<Tree> {
+    const tree = await Tree.init(folder.name);
     const entries = Object.entries(folder.contents);
-    // console.log("_____________________________");
-    // console.log(this.index.stagedFiles);
-    // console.log("_____________________________");
     for (const [id, entry] of entries) {
       if (entry instanceof BlobFile) {
-        if (this.index.stagedFiles[entry.id]) {
+        if (this.index.stagedFiles[entry.getId()]) {
           // console.log(entry);
           tree.addEntry(entry);
         } else {
           if (this.head !== null) {
             //親コミットIDを探す。
-            const parentID = this.commitList[this.head].parentCommitId;
+            const parentID = this.commitList[this.head].getParentId();
             if (parentID == null) {
               const tree = this.commitList[this.head].tree;
-              const file = this.searchTree(entry.id, tree);
+              const file = this.searchTree(entry.getId(), tree);
               if (file !== null) {
                 tree.addEntry(file);
               }
             } else {
               const parentTree = this.commitList[parentID].tree;
               // this.headがnullでない以上、parentIDは必ず存在する。
-              const file = this.searchTree(entry.id, parentTree);
+              const file = this.searchTree(entry.getId(), parentTree);
               if (file !== null) {
                 tree.addEntry(file);
               }
@@ -310,7 +267,7 @@ export class Repository {
           }
         }
       } else if (entry instanceof Folder) {
-        const subTree = this.generateTree(entry);
+        const subTree = await this.generateTree(entry);
         if (subTree) {
           tree.addEntry(subTree);
         }
@@ -334,7 +291,7 @@ export class Repository {
     return null;
   }
 
-  generateRepositoryTree(): Tree {
-    return this.generateTree(this.rootFolder);
+  async generateRepositoryTree(): Promise<Tree> {
+    return this.generateTree(Contents.folder);
   }
 }

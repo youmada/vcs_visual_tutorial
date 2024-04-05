@@ -1,25 +1,24 @@
 import { describe, test, expect } from "vitest";
 import { Tree } from "../class/tree";
 import { BlobFile } from "../class/blobFile";
-
-describe("Treeオブジェクトのテスト", () => {
-  const tree = new Tree("root");
+global.crypto = require("crypto");
+describe("Treeオブジェクトのテスト", async () => {
+  const tree = await Tree.init("tree1");
 
   test("初期化テスト", () => {
     expect(tree.entry).toEqual({});
-    expect(tree.id).toBe("");
+    expect(tree.getId()).toBeTypeOf("string");
   });
 
-  test("メソッドテスト", () => {
-    const blobFile = new BlobFile("file1", "text", "/");
-    blobFile.createId();
+  test("メソッドテスト", async () => {
+    const blobFile = await BlobFile.init("file1", "text", "/");
     tree.addEntry(blobFile);
-    expect(tree.entry[blobFile.id]).toEqual(blobFile);
-    const subTree = new Tree("sub");
+    expect(tree.entry[blobFile.getId()]).toEqual(blobFile);
+    const subTree = await Tree.init("sub");
     subTree.addEntry(blobFile);
-    const subTreeId = subTree.id;
+    const subTreeId = subTree.getId();
     tree.addEntry(subTree);
     expect(tree.entry[subTreeId]).toEqual(subTree);
-    expect(tree.id).toBeTruthy;
+    expect(tree.getId()).toBeTruthy;
   });
 });

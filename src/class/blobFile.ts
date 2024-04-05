@@ -1,34 +1,42 @@
-const crypto = require("crypto");
-/*/
-BlobFileクラス
-path: ファイルが格納されているフォルダの名前
-/*/
-
 export class BlobFile {
-  id: string;
   name: string;
   text: string;
   path: string;
-  constructor(name: string, text: string, path: string = "root") {
-    this.name = name;
-    this.text = text;
-    this.path = path;
-    this.id = this.createId();
+  id: string | null;
+
+  constructor() {
+    this.name = "";
+    this.text = "";
+    this.path = "";
+    this.id = null;
   }
 
-  createId() {
-    const hash = crypto.createHash("sha1");
-    hash.update(this.name + this.text + this.path);
-    return hash.digest("hex");
+  static async init(name: string, text: string, path: string): Promise<BlobFile> {
+    const blobFile = new BlobFile();
+    blobFile.name = name;
+    blobFile.text = text;
+    blobFile.path = path;
+    blobFile.id = await blobFile.createId();
+    return blobFile;
+  }
+
+  async createId(): Promise<string> {
+    const msgUint8 = new TextEncoder().encode(this.name + this.path);
+    const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    return hashHex;
+  }
+
+  async updateText(text: string) {
+    this.text = text;
   }
 
   updatePath(path: string) {
     this.path = path;
   }
 
-  updateText(text: string): string {
-    this.text = text;
-    this.createId();
-    return this.id;
+  getId(): string {
+    return this.id!;
   }
 }

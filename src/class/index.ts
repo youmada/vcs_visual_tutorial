@@ -14,7 +14,7 @@ export class Index {
 
   addStage(files: BlobFile[]) {
     for (const file of files) {
-      this.stagedFiles[file.id] = file;
+      this.stagedFiles[file.getId()] = file;
     }
   }
 
@@ -23,6 +23,6 @@ export class Index {
   }
 
   removeStage(file: BlobFile) {
-    delete this.stagedFiles[file.id];
+    delete this.stagedFiles[file.getId()];
   }
 }

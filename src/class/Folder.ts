@@ -1,74 +1,56 @@
 import { BlobFile } from "./blobFile";
-const crypto = require("crypto");
 /*/ Folderクラス
-BlobFileを格納するためのオブジェクトを生成する。
-idはハッシュ値なので、フォルダを管理するRepositoryクラスに
-同一名のフォルダの生成をチェックするメソッドをつける。
 createId(): ID生成。
-updatePath():再帰的に子要素のpathを変更させる。
 updateName(): フォルダ名を変更し、IDを再生成する。
-createFile(): BlobFileクラスをインスタンス化する
-createFolder(): Folderクラスをインスタンス化する
-pushFile(): 生成したBlobFileインスタンスをfoldersプロパティに格納
 isCheckSameFile(): 同一名のファイル生成をチェックする
 /*/
 export class Folder {
   name: string;
   contents: { [name: string]: BlobFile | Folder };
-  id: string;
+  private id: string | null;
   path: string;
-  constructor(name: string, path: string = "root") {
-    this.name = name;
+  constructor() {
+    this.name = "";
     this.contents = {};
-    this.id = this.createId();
-    this.path = path;
+    this.path = "";
+    this.id = null;
   }
 
-  createId(): string {
-    const hash = crypto.createHash("sha1");
-    hash.update(this.name);
-    return hash.digest("hex");
+  static async init(name: string, path: string): Promise<Folder> {
+    const folder = new Folder();
+    folder.name = name;
+    folder.path = path;
+    folder.id = await folder.createId();
+    return folder;
   }
 
-  updatePath(path: string) {
-    for (const key in this.contents) {
-      const item = this.contents[key];
-      if (item instanceof BlobFile) {
-        item.updatePath(path);
-      } else {
-        item.path = path;
-      }
-      item.createId();
+  insertContent(item: BlobFile | Folder) {
+    if (this.isCheckSame(item.name)) {
+      this.contents[item.name] = item;
     }
+  }
+
+  async createId(): Promise<string> {
+    const msgUint8 = new TextEncoder().encode(this.name);
+    const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    return hashHex;
+  }
+
+  getId(): string {
+    return this.id!;
   }
 
   updateName(nameText: string) {
     this.name = nameText;
-    this.updatePath(nameText);
   }
 
-  createFile(name: string, text: string): BlobFile | void {
-    if (this.isCheckSame(name)) {
-      console.log("file name is already");
-      return;
-    }
-    const file = new BlobFile(name, text, this.name);
-    this.contents[file.name] = file;
-    return file;
-  }
-
-  createFolder(name: string): Folder | void {
-    if (this.isCheckSame(name)) {
-      console.log("file name is already");
-      return;
-    }
-    const folder = new Folder(name, this.name);
-    this.contents[folder.name] = folder;
-    return folder;
+  updatePath(pathName: string) {
+    this.path = pathName;
   }
 
   isCheckSame(fileName: string): boolean {
-    const isCheck = this.contents[fileName] ? true : false;
-    return isCheck;
+    return !this.contents[fileName] ? true : false;
   }
 }

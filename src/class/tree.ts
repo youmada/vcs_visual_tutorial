@@ -1,29 +1,30 @@
 import { BlobFile } from "./blobFile";
 import { Folder } from "./folder";
 
-/*/
-Treeクラス
-フォルダとファイルを要素に取り、Commitクラスの子要素になる。
-
-addEntry(): Treeオブジェクトに要素を追加する。
-createID(): IDをハッシュ値で生成する。
-/*/
 export class Tree {
   entry: { [name: string]: BlobFile | Folder | Tree };
-  id: string;
-  name:string;
-  constructor(name:string) {
+  private id: string | null;
+  name: string;
+  constructor() {
     this.entry = {};
-    this.id = "";
-    this.name = name;
+    this.name = "";
+    this.id = null;
   }
 
-  addEntry(object: BlobFile | Folder | Tree) {
-    this.entry[object.id] = object;
+  static async init(name: string): Promise<Tree> {
+    const tree = new Tree();
+    tree.name = name;
+    tree.id = await tree.createId();
+    return tree;
+  }
+
+  addEntry(object: BlobFile | Tree) {
+    const item = object;
+    this.entry[item.getId()] = item;
     this.createId();
   }
 
-  createId() {
+  private async createId(): Promise<string> {
     const combineId = () => {
       let sumIDString = "";
       for (const key in this.entry) {
@@ -31,11 +32,14 @@ export class Tree {
       }
       return sumIDString;
     };
-    const crypto = require("crypto");
-    const hash = crypto.createHash("sha1");
-    const combinedId = combineId();
-    hash.update(combinedId);
-    // フォルダ名の変更に際して、フォルダ名を使っているファイルのIDも変更する。
-    this.id = hash.digest("hex");
+    const msgUint8 = new TextEncoder().encode(combineId());
+    const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    return hashHex;
+  }
+
+  getId(): string {
+    return this.id!;
   }
 }
