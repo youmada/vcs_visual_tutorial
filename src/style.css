@@ -37,7 +37,7 @@ h1 {
 /* 左右分割レイアウトのスタイル */
 .container {
   display: flex;
-  height: 100vh; /* 画面の高さいっぱいに伸ばす */
+  height: 100vh;
 }
 
 .left {
@@ -65,6 +65,103 @@ h1 {
   flex: 6;
   padding: 20px;
   box-sizing: border-box;
+  position: relative;
+}
+
+.button-Container {
+  width: 90%;
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.button-Container button {
+  width: fit-content;
+}
+
+.file-display-area {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  height: 50%;
+  overflow: scroll;
+}
+
+.file-display-area div {
+  margin: 10px auto;
+  width: 80%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.file-display-area div p {
+  margin: 10px auto;
+}
+
+/* 要素をクリックしたときのアクティブ化スタイル */
+.active {
+  border: #007bff solid 2px;
+  border-radius: 10px;
+}
+
+/* モーダルの背景 */
+.modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* モーダル本体 */
+.modal {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+/* タイトル */
+.modal h2 {
+  margin-top: 0;
+}
+
+/* フォーム */
+.modal form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 入力欄 */
+.modal input[type="text"],
+.modal textarea {
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* 送信ボタン */
+.modal button[type="submit"] {
+  padding: 8px 20px;
+  background-color: #007bff; /* ボタンの色は適宜変更 */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 送信ボタンのホバー時のスタイル */
+.modal button[type="submit"]:hover {
+  background-color: #0056b3; /* ホバー時の色は適宜変更 */
 }
 
 @media (prefers-color-scheme: light) {

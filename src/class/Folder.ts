@@ -8,18 +8,18 @@ export class Folder {
   name: string;
   contents: { [name: string]: BlobFile | Folder };
   private id: string | null;
-  path: string;
+  parent: Folder | null;
   constructor() {
     this.name = "";
     this.contents = {};
-    this.path = "";
+    this.parent = null;
     this.id = null;
   }
 
-  static async init(name: string, path: string): Promise<Folder> {
+  static async init(name: string, parent: Folder | null): Promise<Folder> {
     const folder = new Folder();
     folder.name = name;
-    folder.path = path;
+    folder.parent = parent;
     folder.id = await folder.createId();
     return folder;
   }
@@ -44,10 +44,6 @@ export class Folder {
 
   updateName(nameText: string) {
     this.name = nameText;
-  }
-
-  updatePath(pathName: string) {
-    this.path = pathName;
   }
 
   isCheckSame(fileName: string): boolean {

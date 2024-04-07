@@ -21,7 +21,7 @@ export class BlobFile {
   }
 
   async createId(): Promise<string> {
-    const msgUint8 = new TextEncoder().encode(this.name + this.path);
+    const msgUint8 = new TextEncoder().encode(this.name + this.path + this.text);
     const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");

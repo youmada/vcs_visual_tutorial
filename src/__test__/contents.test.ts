@@ -13,7 +13,7 @@ describe("Contents", () => {
 
   test("フォルダにファイルを追加するテスト", async () => {
     const folder = await Folder.init("TestFolder", "/");
-    await Contents.addFile("TestFile.txt", folder);
+    await Contents.addFile("TestFile.txt", "", folder);
     expect(folder.contents).toHaveProperty("TestFile.txt");
     expect(folder.contents["TestFile.txt"]).toBeInstanceOf(BlobFile);
   });
@@ -39,8 +39,8 @@ describe("Contents", () => {
     const result2 = Contents.searchContent(file, parentFolder);
     const result3 = Contents.searchContent(file, childFolder);
 
-    expect(result1).toBe(true);
-    expect(result2).toBe(true);
-    expect(result3).toBe(false);
+    expect(result1).toBe(childFolder);
+    expect(result2).toBe(file);
+    expect(result3).toBe(null);
   });
 });

@@ -1,6 +1,13 @@
 import { toggleDisplay } from "../util";
+import { WorkingAreaLayout } from "./workingAreaLayout";
 
 export class Layout {
+  static rightContainer = document.createElement("div");
+  static container = document.createElement("div");
+  static repository = this.createVcsElement("Repository", "left");
+  static staging = this.createVcsElement("Staging", "top");
+  static working = this.createVcsElement("Working", "bottom");
+
   static createVcsElement(text: string, className: string): HTMLDivElement {
     const element = document.createElement("div");
     element.textContent = text;
@@ -17,7 +24,7 @@ export class Layout {
     }
   };
 
-  static initProcess(): void {
+  static initPage(): void {
     // initボタンの作成
     const initButton = document.createElement("button");
     initButton.textContent = "Init";
@@ -45,29 +52,21 @@ export class Layout {
 
   static createVcsPageLayout(): void {
     // vcsページに必要なレイアウト要素の作成
-    const repository = this.createVcsElement("Repository", "left");
-    const staging = this.createVcsElement("Staging", "top");
-    const working = this.createVcsElement("Working", "bottom");
-
     // vcsページ全体をラップする
-    const container = document.createElement("div");
-    container.classList.add("container");
+    Layout.container.classList.add("container");
 
     // 右側のコンテンツのラップ
-    const rightContainer = document.createElement("div");
-    rightContainer.classList.add("right");
+
+    Layout.rightContainer.classList.add("right");
 
     const vcsPageDiv = document.getElementById("vcsPage");
     if (vcsPageDiv) {
       // 前のコンテンツがあった場合に削除する
-      vcsPageDiv.innerHTML = "";
-
-      container.appendChild(repository);
-      container.appendChild(rightContainer);
-      rightContainer.appendChild(staging);
-      rightContainer.appendChild(working);
-
-      vcsPageDiv.appendChild(container);
+      Layout.container.appendChild(Layout.repository);
+      Layout.container.appendChild(Layout.rightContainer);
+      Layout.rightContainer.appendChild(Layout.staging);
+      Layout.rightContainer.appendChild(WorkingAreaLayout.createWorkingArea());
+      vcsPageDiv.appendChild(Layout.container);
     }
   }
 }
