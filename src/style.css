@@ -54,10 +54,49 @@ h1 {
   flex-direction: column;
 }
 
+.split-container {
+  display: flex;
+  height: calc(100% - 2rem);
+}
+
+.split-item {
+  flex: 1;
+  border-right: 1px solid #ccc;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.split-item p {
+  text-align: center;
+  color: #afafaf;
+}
+
+.split-item button {
+  width: 80%;
+  padding: 10px;
+  border: none;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.split-item:nth-last-child(1) {
+  border-right: none;
+}
+
+.area-title {
+  margin: 0;
+  height: 2rem;
+  margin-left: 20px;
+}
+
 .top {
   flex: 4;
   border-bottom: 1px solid #ccc;
-  padding: 20px;
+  padding: 20px 0 0 0;
   box-sizing: border-box;
 }
 

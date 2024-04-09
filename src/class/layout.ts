@@ -1,4 +1,5 @@
 import { toggleDisplay } from "../util";
+import StagingAreaLayout from "./stagingAreaLayout";
 import { WorkingAreaLayout } from "./workingAreaLayout";
 
 export class Layout {
@@ -64,7 +65,33 @@ export class Layout {
       // 前のコンテンツがあった場合に削除する
       Layout.container.appendChild(Layout.repository);
       Layout.container.appendChild(Layout.rightContainer);
-      Layout.rightContainer.appendChild(Layout.staging);
+      Layout.rightContainer.appendChild(StagingAreaLayout.createStagingArea());
+      Layout.rightContainer.appendChild(WorkingAreaLayout.createWorkingArea());
+      vcsPageDiv.appendChild(Layout.container);
+    }
+  }
+
+  static updateVcsPage(): void {
+    // VCSページの要素を取得
+    const vcsPageDiv = document.getElementById("vcsPage");
+
+    if (vcsPageDiv) {
+      // 既存の内容をクリア
+      vcsPageDiv.innerHTML = "";
+
+      // 新しいレイアウト要素を作成
+      Layout.container = document.createElement("div");
+      Layout.container.classList.add("container");
+
+      Layout.rightContainer = document.createElement("div");
+      Layout.rightContainer.classList.add("right");
+
+      Layout.repository = document.createElement("div"); // 仮にdiv要素を作成します。実際には適切な要素を作成してください。
+
+      // 新しい内容を追加
+      Layout.container.appendChild(Layout.repository);
+      Layout.container.appendChild(Layout.rightContainer);
+      Layout.rightContainer.appendChild(StagingAreaLayout.createStagingArea());
       Layout.rightContainer.appendChild(WorkingAreaLayout.createWorkingArea());
       vcsPageDiv.appendChild(Layout.container);
     }

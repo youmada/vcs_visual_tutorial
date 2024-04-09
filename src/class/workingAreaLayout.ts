@@ -9,9 +9,7 @@ export class WorkingAreaLayout {
   static buttonContainer(): HTMLDivElement {
     const buttonContainer = document.createElement("div");
     buttonContainer.classList.add("button-Container");
-    // ステージングボタンを作成
-    const stagingButton = document.createElement("button");
-    stagingButton.textContent = "ステージング";
+
     // フォルダ作成ボタンを作成
     const createFolderButton = document.createElement("button");
     createFolderButton.textContent = "フォルダ作成";
@@ -41,7 +39,6 @@ export class WorkingAreaLayout {
     });
 
     // ワーキングエリアでファイル操作ボタンを追加
-    buttonContainer.appendChild(stagingButton);
     buttonContainer.appendChild(createFolderButton);
     buttonContainer.appendChild(createFileButton);
     return buttonContainer;
