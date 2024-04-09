@@ -28,6 +28,10 @@ export class BlobFile {
     return hashHex;
   }
 
+  async updateId() {
+    this.id = await this.createId();
+  }
+
   async updateText(text: string) {
     this.text = text;
   }

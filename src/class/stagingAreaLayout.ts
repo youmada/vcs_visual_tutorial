@@ -37,17 +37,6 @@ class StagingAreaLayout {
     <p>staging</p>
     `;
     const commitBtn = StagingAreaLayout.createButton("commit", () => {
-      Vcs.repository.stage(Vcs.changeFiles);
-    });
-    stagedFileArea.appendChild(commitBtn);
-
-    // changedFileを表示するHTML要素を作成
-    const changedFileArea = document.createElement("div");
-    changedFileArea.classList.add("split-item");
-    changedFileArea.innerHTML = `
-    <p>change files</p>
-    `;
-    const stagedBtn = StagingAreaLayout.createButton("commit", () => {
       // モーダルの内容となる要素を作成
       const modalContent = StagingAreaLayout.commitMessageModal();
       // モーダルを表示
@@ -58,6 +47,26 @@ class StagingAreaLayout {
         // コミットを実行
         if (commitMessage) Vcs.repository.commit(commitMessage);
       });
+    });
+    stagedFileArea.appendChild(commitBtn);
+
+    // changedFileを表示するHTML要素を作成
+    const changedFileArea = document.createElement("div");
+    changedFileArea.classList.add("split-item");
+    changedFileArea.innerHTML = `
+    <p>change files</p>
+    `;
+    const changeFilesDiv = document.createElement("div");
+    for (const file of Vcs.changeFiles) {
+      const fileEle = document.createElement("div");
+      fileEle.innerHTML = `
+        <p>${file.name}</p>
+        `;
+      changeFilesDiv.appendChild(fileEle);
+    }
+    changedFileArea.appendChild(changeFilesDiv);
+    const stagedBtn = StagingAreaLayout.createButton("staged", () => {
+      Vcs.repository.stage(Vcs.changeFiles);
     });
 
     changedFileArea.appendChild(stagedBtn);

@@ -3,6 +3,8 @@ import { BlobFile } from "./blobFile";
 import { Contents } from "./contents";
 import { Folder } from "./folder";
 import { Layout } from "./layout";
+import StagingAreaLayout from "./stagingAreaLayout";
+import { Vcs } from "./vcs";
 
 export class WorkingAreaLayout {
   static activeContents: BlobFile | Folder | null = null;
@@ -87,8 +89,12 @@ export class WorkingAreaLayout {
           showModal<fileData>("ファイル編集", WorkingAreaLayout.updateFileModal(item), {}, async (formData: FormData<fileData>) => {
             const textInput = document.getElementById("fileText") as HTMLInputElement;
             formData.text = textInput.value;
+            const prevID = item.getId();
             await item.updateText(formData.text);
+            await item.updateId();
+            Vcs.checkChangeFile(item, prevID);
             WorkingAreaLayout.createWorkingArea();
+            StagingAreaLayout.createStagingArea();
           });
         }
       });
