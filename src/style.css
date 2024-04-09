@@ -71,6 +71,12 @@ h1 {
   color: #afafaf;
 }
 
+.split-item .file {
+  color: black;
+  text-align: center;
+  font-weight: bold;
+}
+
 .split-item button {
   width: 80%;
   padding: 10px;

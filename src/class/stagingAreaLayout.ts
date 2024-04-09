@@ -4,6 +4,7 @@ import { Vcs } from "./vcs";
 
 class StagingAreaLayout {
   static createStagingArea(): HTMLDivElement {
+    console.log(Vcs.changeFiles);
     // Staging area title
     const title = document.createElement("h3");
     title.classList.add("area-title");
@@ -60,7 +61,7 @@ class StagingAreaLayout {
     for (const file of Vcs.changeFiles) {
       const fileEle = document.createElement("div");
       fileEle.innerHTML = `
-        <p>${file.name}</p>
+        <p class="file">${file.name}</p>
         `;
       changeFilesDiv.appendChild(fileEle);
     }

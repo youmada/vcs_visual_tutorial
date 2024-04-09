@@ -17,7 +17,6 @@ export class Vcs {
   static searchChangeFile(item: BlobFile, id: string, folder: Folder): BlobFile | null {
     for (const contentName in folder.contents) {
       const content = folder.contents[contentName];
-      console.log(content);
       if (content instanceof BlobFile) {
         // ファイル名が一致する場合、IDを照合
         if (content.name === item.name && content.getId() === id) {
