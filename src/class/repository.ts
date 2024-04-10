@@ -9,7 +9,6 @@ import { Commit } from "./commit";
 import { Contents } from "./contents";
 import { Folder } from "./folder";
 import { Tree } from "./tree";
-import { Vcs } from "./vcs";
 
 export class Repository {
   index: Index;
@@ -59,8 +58,8 @@ export class Repository {
     this.index.clearStage();
   }
 
-  addFileList(file: BlobFile) {
-    this.fileList[file.getId()] = file;
+  async addFileList(file: BlobFile) {
+    this.fileList[file.getId()] = await BlobFile.init(file.name, file.text, file.path);
   }
 
   // idは親コミットのID
