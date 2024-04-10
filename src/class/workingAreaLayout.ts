@@ -89,10 +89,11 @@ export class WorkingAreaLayout {
           showModal<fileData>("ファイル編集", WorkingAreaLayout.updateFileModal(item), {}, async (formData: FormData<fileData>) => {
             const textInput = document.getElementById("fileText") as HTMLInputElement;
             formData.text = textInput.value;
-            const prevID = item.getId();
+            const prevId = item.getId();
             await item.updateText(formData.text);
             await item.updateId();
-            Vcs.checkChangeFile(item, prevID);
+            const newFile = item;
+            Vcs.checkChangeFile(newFile, prevId);
             WorkingAreaLayout.createWorkingArea();
             StagingAreaLayout.createStagingArea();
           });

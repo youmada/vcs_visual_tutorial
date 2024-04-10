@@ -12,10 +12,8 @@ export class Index {
     this.stagedFiles = {};
   }
 
-  addStage(files: BlobFile[]) {
-    for (const file of files) {
-      this.stagedFiles[file.getId()] = file;
-    }
+  addStage(file: BlobFile) {
+    this.stagedFiles[file.getId()] = file;
   }
 
   clearStage() {

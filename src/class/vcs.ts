@@ -6,14 +6,45 @@ import { Repository } from "./repository";
 export class Vcs {
   static repository: Repository = new Repository();
   static changeFiles: BlobFile[] = [];
+  /**
+   * ファイルをステージングエリアに追加する
+   * @param files - ステージングエリアに追加するファイル Vcs.changedFilesの配列が入る
+   */
+  static checkSameFile(file: BlobFile) {
+    const files = Object.values(Vcs.repository.index.stagedFiles);
+    const sameFile = files.find((f) => {
+      return f.name === file.name;
+    });
+    return sameFile ? sameFile : null;
+  }
 
-  static checkChangeFile(file: BlobFile, id: string): void {
-    const ischange = Vcs.searchChangeFile(file, id, Contents.folder) as BlobFile | null;
+  /**
+   *
+   * @param newFile - ファイルの内容を書き換えた BlobFile インスタンス。
+   * @param prevId - ファイルの ID。 このIDはファイルを書き換えて、IDを変更する前のIDです。
+   * @returns ファイルが変更された場合は、changeFiles プロパティにファイルを追加します。
+   */
+  static checkChangeFile(newFile: BlobFile, prevId: string): void {
+    const ischange = Vcs.searchChangeFile(newFile, prevId, Contents.folder) as BlobFile | null;
+    // ischange == null つまり、ファイルが変更された場合
     if (ischange == null) {
-      Vcs.changeFiles.push(file);
+      Vcs.changeFiles.map((file, index) => {
+        if (file.name === newFile.name) {
+          Vcs.changeFiles.splice(index, 1);
+        }
+      });
+      Vcs.changeFiles.push(newFile);
     }
   }
 
+  /**
+   指定されたフォルダとそのサブフォルダから、指定された名前と ID を持つファイルを検索する。
+   *
+   * @param item - 検索するファイルを表す BlobFile インスタンス。このインスタンスの 'name' プロパティが検索に使用されます。
+   * @param id - 検索するファイルの ID。
+   * @param folder - ファイルを検索する Folder インスタンス。
+   * @returns 与えられた名前と ID を持つファイルが見つかった場合は、見つかったファイルを表す BlobFile インスタンスを返します。
+   **/
   static searchChangeFile(item: BlobFile, id: string, folder: Folder): BlobFile | null {
     for (const contentName in folder.contents) {
       const content = folder.contents[contentName];

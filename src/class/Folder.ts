@@ -24,6 +24,10 @@ export class Folder {
     return folder;
   }
 
+  deleteContent(id: string) {
+    delete this.contents[id];
+  }
+
   insertContent(item: BlobFile | Folder) {
     if (this.isCheckSame(item.name)) {
       this.contents[item.name] = item;

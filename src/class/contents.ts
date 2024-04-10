@@ -11,6 +11,7 @@ export class Contents {
     return Contents.folder;
   }
 
+
   // 階層を切り替えるメソッド。currentParentの値をフォルダ間の移動で切り替える。
   // nextLevel: 次の移動先のフォルダ情報
   static nextLevel(nextLevel: Folder) {

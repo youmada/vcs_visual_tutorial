@@ -9,6 +9,7 @@ import { Commit } from "./commit";
 import { Contents } from "./contents";
 import { Folder } from "./folder";
 import { Tree } from "./tree";
+import { Vcs } from "./vcs";
 
 export class Repository {
   index: Index;
@@ -34,8 +35,20 @@ export class Repository {
     return repository;
   }
 
+  /**
+   * ファイルをステージングエリアに追加する
+   * @param files - ステージングエリアに追加するファイル Vcs.changedFilesの配列が入る
+   */
   stage(files: BlobFile[]) {
-    this.index.addStage(files);
+    files.forEach((file) => {
+      const stagedFiles = Object.entries(this.index.stagedFiles);
+      for (const [key, stagedFile] of stagedFiles) {
+        if (stagedFile.name === file.name) {
+          delete this.index.stagedFiles[key];
+        }
+      }
+      this.index.addStage(file);
+    });
   }
 
   unstage(file: BlobFile) {

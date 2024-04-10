@@ -1,10 +1,10 @@
 import { FormData, showModal } from "../util";
+import { Contents } from "./contents";
 import { Layout } from "./layout";
 import { Vcs } from "./vcs";
 
 class StagingAreaLayout {
   static createStagingArea(): HTMLDivElement {
-    console.log(Vcs.changeFiles);
     // Staging area title
     const title = document.createElement("h3");
     title.classList.add("area-title");
@@ -37,6 +37,7 @@ class StagingAreaLayout {
     stagedFileArea.innerHTML = `
     <p>staging</p>
     `;
+    // commitボタンを作成
     const commitBtn = StagingAreaLayout.createButton("commit", () => {
       // モーダルの内容となる要素を作成
       const modalContent = StagingAreaLayout.commitMessageModal();
@@ -50,6 +51,17 @@ class StagingAreaLayout {
       });
     });
     stagedFileArea.appendChild(commitBtn);
+    // ステージングエリアにあるファイルを表示
+    const stagedFilesDiv = document.createElement("div");
+    for (const key in Vcs.repository.index.stagedFiles) {
+      const file = Vcs.repository.index.stagedFiles[key];
+      const fileEle = document.createElement("div");
+      fileEle.innerHTML = `
+        <p class="file">${file.name}</p>
+        `;
+      stagedFilesDiv.appendChild(fileEle);
+    }
+    stagedFileArea.appendChild(stagedFilesDiv);
 
     // changedFileを表示するHTML要素を作成
     const changedFileArea = document.createElement("div");
@@ -66,8 +78,11 @@ class StagingAreaLayout {
       changeFilesDiv.appendChild(fileEle);
     }
     changedFileArea.appendChild(changeFilesDiv);
+    // stagedボタンを作成
     const stagedBtn = StagingAreaLayout.createButton("staged", () => {
       Vcs.repository.stage(Vcs.changeFiles);
+      Vcs.changeFiles = [];
+      StagingAreaLayout.createStagingArea();
     });
 
     changedFileArea.appendChild(stagedBtn);
