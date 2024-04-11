@@ -1,8 +1,6 @@
 import { FormData, showModal } from "../util";
-import { Contents } from "./contents";
 import { Layout } from "./layout";
 import { Vcs } from "./vcs";
-
 class StagingAreaLayout {
   static createStagingArea(): HTMLDivElement {
     // Staging area title
@@ -40,17 +38,21 @@ class StagingAreaLayout {
     // commitボタンを作成
     const commitBtn = StagingAreaLayout.createButton("commit", () => {
       // モーダルの内容となる要素を作成
-      const modalContent = StagingAreaLayout.commitMessageModal();
       // モーダルを表示
-      showModal<commitData>("Commit Message", modalContent, {}, async (formData: FormData<commitData>) => {
+      showModal<commitData>("Commit Message", StagingAreaLayout.commitMessageModal(), {}, async (formData: FormData<commitData>) => {
         // コミットメッセージを取得
-        const commitMessage = formData.message;
+        const message = document.getElementById("commitMessage") as HTMLInputElement;
+        formData.message = message.value;
 
         // コミットを実行
-        if (commitMessage) Vcs.repository.commit(commitMessage);
+        if (formData.message) {
+          await Vcs.repository.commit(formData.message);
+          StagingAreaLayout.createStagingArea();
+        }
       });
     });
     stagedFileArea.appendChild(commitBtn);
+
     // ステージングエリアにあるファイルを表示
     const stagedFilesDiv = document.createElement("div");
     for (const key in Vcs.repository.index.stagedFiles) {
@@ -91,12 +93,19 @@ class StagingAreaLayout {
     return container;
   }
 
-  static commitMessageModal(): HTMLInputElement {
+  static commitMessageModal(): HTMLFormElement {
+    const form = document.createElement("form");
     const commitMessageInput = document.createElement("input");
+    const submitBtn = document.createElement("button");
+    submitBtn.type = "submit";
+    submitBtn.textContent = "commit";
     commitMessageInput.type = "text";
+    commitMessageInput.id = "commitMessage";
     commitMessageInput.required = true;
     commitMessageInput.placeholder = "Enter commit message";
-    return commitMessageInput;
+    form.appendChild(commitMessageInput);
+    form.appendChild(submitBtn);
+    return form;
   }
 }
 export default StagingAreaLayout;

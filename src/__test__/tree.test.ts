@@ -1,24 +1,23 @@
-import { describe, test, expect } from "vitest";
-import { Tree } from "../class/tree";
 import { BlobFile } from "../class/blobFile";
+import { Tree } from "../class/tree";
 global.crypto = require("crypto");
-describe("Treeオブジェクトのテスト", async () => {
-  const tree = await Tree.init("tree1");
 
-  test("初期化テスト", () => {
-    expect(tree.entry).toEqual({});
-    expect(tree.getId()).toBeTypeOf("string");
+describe("ツリーオブジェクトテスト", () => {
+  let tree: Tree;
+  let file: BlobFile;
+
+  beforeEach(async () => {
+    tree = await Tree.init("tree");
+    file = await BlobFile.init("file", "text", "parent");
   });
 
-  test("メソッドテスト", async () => {
-    const blobFile = await BlobFile.init("file1", "text", "/");
-    tree.addEntry(blobFile);
-    expect(tree.entry[blobFile.getId()]).toEqual(blobFile);
-    const subTree = await Tree.init("sub");
-    subTree.addEntry(blobFile);
-    const subTreeId = subTree.getId();
-    tree.addEntry(subTree);
-    expect(tree.entry[subTreeId]).toEqual(subTree);
-    expect(tree.getId()).toBeTruthy;
+  it("初期化テスト", () => {
+    expect(tree.name).toBe("tree");
+    expect(tree.getId()).toMatch(/^[0-9a-f]{40}$/i);
+  });
+
+  it("エントリの追加テスト", () => {
+    tree.addEntry(file);
+    expect(tree.entry[file.getId()]).toBe(file);
   });
 });

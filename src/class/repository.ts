@@ -1,8 +1,3 @@
-/*/
-Repository
-
-/*/
-
 import { Index } from ".";
 import { BlobFile } from "./blobFile";
 import { Commit } from "./commit";
@@ -10,6 +5,16 @@ import { Contents } from "./contents";
 import { Folder } from "./folder";
 import { Tree } from "./tree";
 
+/**
+ * リポジトリを表すクラスです。
+ * @property index - Indexクラスのインスタンス
+ * @property head - 現在のコミットのID
+ * @property commitList - コミットのリスト
+ * @property fileList - ファイルのリスト。これまで変更したBlobFileのリストが入る。
+ * @property treeList - ツリーのリスト
+ * @property branchList - ブランチのリスト
+ * @property currentBranch - 現在のブランチ名
+ */
 export class Repository {
   index: Index;
   head: string | null;
@@ -29,13 +34,17 @@ export class Repository {
     this.currentBranch = "";
   }
 
+  /**
+   * Repositoryクラスのインスタンスを初期化します。
+   * @returns Repositoryクラスのインスタンス
+   */
   static init() {
     const repository = new Repository();
     return repository;
   }
 
   /**
-   * ファイルをステージングエリアに追加する
+   * ファイルをステージングエリアに追加する。ステージングエリアに同名のファイルがある場合は、上書きする。
    * @param files - ステージングエリアに追加するファイル Vcs.changedFilesの配列が入る
    */
   stage(files: BlobFile[]) {
@@ -50,20 +59,38 @@ export class Repository {
     });
   }
 
+  /**
+   * ファイルをステージングエリアから削除する。
+   */
   unstage(file: BlobFile) {
     this.index.removeStage(file);
   }
 
+  /**
+   * ステージングエリアをクリアする。
+   */
   resetStage() {
     this.index.clearStage();
   }
 
-  async addFileList(file: BlobFile) {
-    this.fileList[file.getId()] = await BlobFile.init(file.name, file.text, file.path);
+  /**
+   * 渡されたファイル配列をRepositoryクラスのfileListに追加する。
+   * 追加する際に、参照を渡さないために、BlobFile.initを使って新しいインスタンスを生成する。
+   * @param files - BlobFileの配列
+   */
+  async addFileList(files: BlobFile[]) {
+    for (const file of files) {
+      this.fileList[file.getId()] = await BlobFile.init(file.name, file.text, file.path);
+    }
   }
 
-  // idは親コミットのID
-  async createBranch(name: string, id: string) {
+  /**
+   * ブランチを作成する。すでに同じブランチが存在する場合は作成しない。
+   * @param name - 作成するブランチ名
+   * @param id - ブランチを作成するコミットのID
+   * @returns 作成したブランチの最新コミットのIDを返す。すでに同じ名前のブランチが存在する場合はメッセージを返す。
+   */
+  async createBranch(name: string, id: string): Promise<string | null> {
     if (!this.checkBranch(name)) {
       this.currentBranch = name;
       const parentCommit = this.commitList[id];
@@ -77,13 +104,23 @@ export class Repository {
       const head = await this.commit(`${name} branch created`);
       this.branchList[name] = head!;
       return head;
-    } else return "same name branch is already";
+    } else return null;
   }
 
+  /**
+   * ブランチを作成する際に、同じ名前のブランチが存在するか確認する。
+   * @param name - 確認するブランチ名
+   * @returns 同じ名前のブランチが存在する場合はtrue、存在しない場合はfalseを返す。
+   */
   checkBranch(name: string): boolean {
     return this.branchList[name] !== undefined;
   }
 
+  /**
+   * ブランチを検索する。
+   * @param name - 検索するブランチ名
+   * @returns ブランチが存在する場合はそのブランチの最新コミットのIDを返す。存在しない場合はnullを返す。
+   */
   searchBranch(name: string) {
     if (this.checkBranch(name)) {
       return this.branchList[name];
@@ -93,43 +130,62 @@ export class Repository {
   }
 
   // 現状ブランチの切り替えしかできない。後々コミットの切り替えにも対応する。
+  /**
+   * ブランチを切り替える。
+   * @param name - 切り替えるブランチ名
+   * @returns 切り替えたブランチの名前を返す。存在しないブランチ名が渡された場合はnullを返す。
+   */
   checkOut(name: string) {
     if (this.checkBranch(name)) {
       this.currentBranch = name;
       this.head = this.branchList[name];
-      const tree = this.commitList[this.head].tree;
+      this.commitList[this.head].tree;
       return this.currentBranch;
     } else return null;
   }
 
+  /**
+   * マージを行う。
+   * マージ成功時、マージ先のブランチにHEADを移動する。
+   * @param branchName - マージ先のブランチ名
+   * @returns マージが成功した場合はコミットのIDを返す。失敗した場合はnullを返す。
+   */
   merge(branchName: string) {
     // マージ先の最新コミット
     const targetCommit = this.searchBranch(branchName);
 
-    if (targetCommit == null) return "this branch is not";
+    if (targetCommit == null) return null;
     // 現在のブランチの最新コミット
     const currentCommit = this.head!;
 
     // マージ先と元のブランチの共通している親コミットのID
     const baseCommit = this.findBaseCommit(targetCommit, currentCommit);
 
-    if (baseCommit == null) return "no baseCommit";
+    if (baseCommit == null) return null;
 
+    // 共通の親コミットを元に、マージ先と元のブランチの差分ファイルを取得
     const changeFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit);
     let commitID;
     this.currentBranch = branchName;
     if (changeFiles[1].length === 0) {
+      // コンフリクトがない場合
       this.stage(changeFiles[0]);
       commitID = this.commit(`merge ${this.currentBranch} to ${branchName}`);
     } else {
+      // コンフリクトがある場合
       this.resolveConflict(changeFiles[1], targetCommit, currentCommit);
       commitID = this.commit(`merge ${this.currentBranch} to ${branchName}`);
     }
-    // コミットはすでにできている
     this.checkOut(branchName);
     return commitID;
   }
 
+  /**
+   * コンフリクトを解決する。
+   * @param files - コンフリクトしているファイルの配列
+   * @param targetCommitID - マージ先のコミットID
+   * @param currentCommitID - 現在のコミットID
+   */
   resolveConflict(files: BlobFile[], targetCommitID: string, currentCommitID: string): void {
     // filesには配列でオブジェクトが入っている
     // ユーザーに選択肢を表示し、選択されたファイルをステージングする
@@ -145,15 +201,23 @@ export class Repository {
     }
   }
 
+  /**
+   * ファイルの変更とコンフリクトを検出する。
+   * @param target - マージ先のコミットID
+   * @param current - 現在のコミットID
+   * @param base - 共通の親コミットID
+   * @returns ファイルの変更とコンフリクトを返す。[変更ファイル, コンフリクトファイル]
+   */
   checkChangeFiles(target: string, current: string, base: string): [BlobFile[], BlobFile[]] {
     const changeFiles: BlobFile[] = [];
     const conflictFiles: BlobFile[] = [];
 
+    // 共通親コミット、マージ先、現在のコミットオブジェクトを取得
     const baseCommit = this.commitList[base];
     const targetCommit = this.commitList[target];
     const currentCommit = this.commitList[current];
-    // console.log(currentCommit);
 
+    // base, target, currentのファイルを取得
     const baseFiles: { [name: string]: BlobFile } = {};
     Object.values(baseCommit.tree.entry).forEach((content: BlobFile | Tree | Folder) => {
       if (content instanceof BlobFile) {
@@ -183,6 +247,7 @@ export class Repository {
       if (!currentFiles[fileName]) changeFiles.push(targetFiles[fileName]);
     }
 
+    // ここから下記のコードは検証していない
     // 共通のファイルを取得
     // おそらく現状、currentとtargetでそれぞれ新しく同じ名前のファイルを作った場合、コンフリクトが起きない。
     const commonFiles: { [name: string]: BlobFile } = {};
@@ -212,6 +277,10 @@ export class Repository {
     return [changeFiles, conflictFiles];
   }
 
+  /**
+ * マージ先と現在のコミットの共通の親コミットを検索する。
+ * @param targetCommitID - マージ先のコミットID
+ */
   findBaseCommit(targetCommitID: string, currentCommitID: string): string | null {
     const targetCommitParents = new Set();
     const currentCommitParents = new Set();
@@ -250,39 +319,38 @@ export class Repository {
     return newCommit.getId();
   }
 
+  private async handleFileEntry(entry: BlobFile, tree: Tree) {
+    if (this.index.stagedFiles[entry.getId()]) {
+      // ステージングされたファイルに該当するファイルをfileListから取得し、treeに追加する
+      const stagedFile = this.index.stagedFiles[entry.getId()];
+      const file = this.fileList[stagedFile.getId()];
+      tree.addEntry(file);
+    }
+    if (this.head !== null) {
+      const parentID = this.commitList[this.head].getParentId();
+      const parentTree = parentID == null ? this.commitList[this.head].tree : this.commitList[parentID].tree;
+      const file = this.searchTree(entry.getId(), parentTree);
+      if (file !== null) {
+        tree.addEntry(file);
+      }
+    }
+  }
+
+  private async handleFolderEntry(entry: Folder, tree: Tree) {
+    const subTree = await this.generateTree(entry);
+    if (subTree) {
+      tree.addEntry(subTree);
+    }
+  }
+
   async generateTree(folder: Folder): Promise<Tree> {
     const tree = await Tree.init(folder.name);
     const entries = Object.entries(folder.contents);
-    for (const [id, entry] of entries) {
+    for (const [, entry] of entries) {
       if (entry instanceof BlobFile) {
-        if (this.index.stagedFiles[entry.getId()]) {
-          // console.log(entry);
-          tree.addEntry(entry);
-        } else {
-          if (this.head !== null) {
-            //親コミットIDを探す。
-            const parentID = this.commitList[this.head].getParentId();
-            if (parentID == null) {
-              const tree = this.commitList[this.head].tree;
-              const file = this.searchTree(entry.getId(), tree);
-              if (file !== null) {
-                tree.addEntry(file);
-              }
-            } else {
-              const parentTree = this.commitList[parentID].tree;
-              // this.headがnullでない以上、parentIDは必ず存在する。
-              const file = this.searchTree(entry.getId(), parentTree);
-              if (file !== null) {
-                tree.addEntry(file);
-              }
-            }
-          }
-        }
+        await this.handleFileEntry(entry, tree);
       } else if (entry instanceof Folder) {
-        const subTree = await this.generateTree(entry);
-        if (subTree) {
-          tree.addEntry(subTree);
-        }
+        await this.handleFolderEntry(entry, tree);
       }
     }
     return tree;
@@ -304,6 +372,7 @@ export class Repository {
   }
 
   async generateRepositoryTree(): Promise<Tree> {
-    return this.generateTree(Contents.folder);
+    await this.addFileList(Object.values(this.index.stagedFiles));
+    return await this.generateTree(Contents.folder);
   }
 }

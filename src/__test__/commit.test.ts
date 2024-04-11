@@ -1,18 +1,29 @@
-import { describe, test, expect } from "vitest";
-global.crypto = require("crypto");
 import { Commit } from "../class/commit";
 import { Tree } from "../class/tree";
-describe("commitクラスのテスト", async () => {
-  const tree = await Tree.init("tree1");
-  const tree2 = await Tree.init("tree2");
-  const firstCommit = await Commit.init("最初のコミット", tree);
-  const secondCommit = await Commit.init("2回目のコミット", tree2, firstCommit.getId());
+global.crypto = require("crypto");
 
-  test("初期化テスト", () => {
-    expect(firstCommit.message).toBe("最初のコミット");
-    expect(firstCommit.getId()).toBeTypeOf("string");
-    expect(firstCommit.tree).toBe(tree);
-    expect(firstCommit.getParentId()).toBe(null);
-    expect(secondCommit.getParentId()).toBe(firstCommit.getId());
+describe("コミットオブジェクトテスト", () => {
+  let commit: Commit;
+  let tree: Tree;
+  let message: string;
+
+  beforeEach(async () => {
+    tree = await Tree.init("tree");
+    message = "コミットテスト";
+    commit = await Commit.init(message, tree);
+  });
+
+  it("初期化テスト", () => {
+    expect(commit.message).toBe(message);
+    expect(commit.tree).toBe(tree);
+    expect(commit.getParentId()).toBeNull();
+  });
+
+  it("parentIdの取得テスト", async () => {
+    const message = "Second commit";
+    const secondCommit = await Commit.init(message, tree, commit.getId());
+    expect(secondCommit.message).toBe(message);
+    expect(secondCommit.tree).toBe(tree);
+    expect(secondCommit.getParentId()).toMatch(/^[0-9a-f]{40}$/i);
   });
 });

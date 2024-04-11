@@ -1,29 +1,40 @@
-import { describe, test, expect } from "vitest";
+import { Index } from "../class/index";
 import { BlobFile } from "../class/blobFile";
-import { Index } from "../class";
 global.crypto = require("crypto");
+describe("インデックスクラステスト", () => {
+  let index: Index;
+  let file1: BlobFile;
+  let file2: BlobFile;
 
-describe("indexクラスのテスト", async () => {
-  const file1 = await BlobFile.init("test1", "text", "path1");
-  const file2 = await BlobFile.init("test2", "text", "path2");
-  const files = [file1, file2];
-  const index = new Index();
-  test("初期化テスト", () => {
-    expect(index.stagedFiles).toEqual({});
+  beforeEach(async () => {
+    index = new Index();
+    file1 = await BlobFile.init("file1", "content1", "path");
+    file2 = await BlobFile.init("file2", "content2", "path");
   });
 
-  test("メソッドテスト", () => {
-    //addStage()のテスト
-    index.addStage(files);
-    expect(index.stagedFiles).toEqual({ [files[0].getId()]: files[0], [files[1].getId()]: files[1] });
+  it("ステージングエリアにファイルを追加する", () => {
+    index.addStage(file1);
+    index.addStage(file2);
+    expect(index.stagedFiles[file1.getId()]).toBe(file1);
+    expect(index.stagedFiles[file2.getId()]).toBe(file2);
+  });
 
-    //removeStage()のテスト
-    const file = index.stagedFiles[files[0].getId()];
-    index.removeStage(index.stagedFiles[files[0].getId()]);
-    expect(index.stagedFiles).not.toContainEqual(file);
+  it("ステージングエリアをクリアする", () => {
+    index.addStage(file1);
+    index.addStage(file2);
 
-    //clearStage()のテスト
     index.clearStage();
-    expect(index.stagedFiles).toEqual({});
+
+    expect(Object.keys(index.stagedFiles).length).toBe(0);
+  });
+
+  it("ステージングエリアからファイルを削除する", () => {
+    index.addStage(file1);
+    index.addStage(file2);
+
+    index.removeStage(file1);
+
+    expect(index.stagedFiles[file1.getId()]).toBeUndefined();
+    expect(index.stagedFiles[file2.getId()]).toBe(file2);
   });
 });
