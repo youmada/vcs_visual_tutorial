@@ -1,38 +1,50 @@
 import { Folder } from "../class/folder";
-import { describe, test, expect } from "vitest";
 import { BlobFile } from "../class/blobFile";
 global.crypto = require("crypto");
 
-describe("Folderクラスのテスト", async () => {
-  const folder = await Folder.init("testFolder", "root");
+describe("Folderクラスのテスト", () => {
+  let rootFolder: Folder;
+  let folder: Folder;
+
+  beforeEach(async () => {
+    rootFolder = await Folder.init("root", null);
+    folder = await Folder.init("testFolder", rootFolder);
+  });
+
   test("初期化テスト", () => {
     expect(folder.name).toBe("testFolder");
-    expect(folder.path).toBe("root");
-    expect(folder.getId()).toBeTypeOf("string");
+    expect(folder.parent).toBe(rootFolder);
+    expect(folder.getId()).toMatch(/^[0-9a-f]{40}$/i);
     expect(folder.contents).toEqual({});
   });
 
-  test("メソッドテスト", async () => {
-    // updateName()のテスト
+  test("updateName()のテスト", () => {
     folder.updateName("updateName");
     expect(folder.name).toBe("updateName");
+  });
 
-    //createFile()のテスト
+  test("insertContent()のテスト", async () => {
     const file = await BlobFile.init("file", "テスト", "updatePath");
     folder.insertContent(file);
     expect(folder.contents["file"]).toEqual(file);
-    expect(folder.isCheckSame("file")).toBeTruthy;
-    expect(folder.isCheckSame("undefined file")).toBeFalsy;
+    expect(folder.isCheckSame("file")).toBeFalsy();
+    expect(folder.isCheckSame("undefined file")).toBeTruthy();
+  });
 
-    //createFolder()のテスト
-    const folder2 = await Folder.init("folder2", "updatePath");
-    folder.insertContent(folder2);
-    expect(folder.contents["folder2"]).toEqual(folder2);
-    expect(folder.isCheckSame("folder2")).toBeTruthy;
-    expect(folder.isCheckSame("undefined file")).toBeTruthy;
+  test("deleteContent()のテスト", async () => {
+    const file = await BlobFile.init("file", "テスト", rootFolder.name);
+    folder.insertContent(file);
+    folder.deleteContent("file");
+    expect(folder.contents["file"]).toBeUndefined();
+  });
 
-    //updatePath()のテスト
-    folder.updatePath("secondUpdate");
-    expect(folder.path).toBe("secondUpdate");
+  test("createId()のテスト", async () => {
+    const id = await folder.createId();
+    expect(id).toMatch(/^[0-9a-f]{40}$/i);
+  });
+
+  test("getId()のテスト", () => {
+    const id = folder.getId();
+    expect(id).toMatch(/^[0-9a-f]{40}$/i);
   });
 });

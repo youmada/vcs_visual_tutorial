@@ -183,10 +183,10 @@ export class Repository {
   /**
    * コンフリクトを解決する。
    * @param files - コンフリクトしているファイルの配列
-   * @param targetCommitID - マージ先のコミットID
+   * @param _targetCommitID - マージ先のコミットID
    * @param currentCommitID - 現在のコミットID
    */
-  resolveConflict(files: BlobFile[], targetCommitID: string, currentCommitID: string): void {
+  resolveConflict(files: BlobFile[], _targetCommitID: string, _currentCommitID: string): void {
     // filesには配列でオブジェクトが入っている
     // ユーザーに選択肢を表示し、選択されたファイルをステージングする
     for (const file of files) {
@@ -247,9 +247,8 @@ export class Repository {
       if (!currentFiles[fileName]) changeFiles.push(targetFiles[fileName]);
     }
 
-    // ここから下記のコードは検証していない
+    //おそらく現状、currentとtargetでそれぞれ新しく同じ名前のファイルを作った場合、コンフリクトが起きない。
     // 共通のファイルを取得
-    // おそらく現状、currentとtargetでそれぞれ新しく同じ名前のファイルを作った場合、コンフリクトが起きない。
     const commonFiles: { [name: string]: BlobFile } = {};
     for (const file in baseFiles) {
       if (currentFiles[file] && targetFiles[file]) {
@@ -278,9 +277,11 @@ export class Repository {
   }
 
   /**
- * マージ先と現在のコミットの共通の親コミットを検索する。
- * @param targetCommitID - マージ先のコミットID
- */
+   * マージ先と現在のコミットの共通の親コミットを検索する。
+   * @param targetCommitID - マージ先のコミットID
+   * @param currentCommitID - 現在のコミットID
+   * @returns 共通の親コミットのIDを返す。共通の親コミットが存在しない場合はnullを返す。
+   */
   findBaseCommit(targetCommitID: string, currentCommitID: string): string | null {
     const targetCommitParents = new Set();
     const currentCommitParents = new Set();
@@ -303,6 +304,13 @@ export class Repository {
     return null;
   }
 
+  /**
+   * ステージングエリアのファイルを元にツリーを作成し、コミットを作成する。
+   * また、初回コミットの場合はmasterブランチを作成する。
+   * indexをクリアする。
+   * @param message - コミットメッセージ
+   * @returns コミットのIDを返す。
+   */
   async commit(message: string) {
     const newTree = await this.generateRepositoryTree();
     this.treeList[newTree.getId()] = newTree;
@@ -319,6 +327,12 @@ export class Repository {
     return newCommit.getId();
   }
 
+  /**
+   * generateTreeメソッドで使うprivateメソッド。
+   * BlobFileのインスタンスを受け取り、treeに追加する。
+   * @param entry - BlobFileのインスタンス
+   * @param tree - Treeのインスタンス
+   */
   private async handleFileEntry(entry: BlobFile, tree: Tree) {
     if (this.index.stagedFiles[entry.getId()]) {
       // ステージングされたファイルに該当するファイルをfileListから取得し、treeに追加する
@@ -336,6 +350,12 @@ export class Repository {
     }
   }
 
+  /**
+   * generateTreeメソッドで使うprivateメソッド。
+   * Folderのインスタンスを受け取り、treeを生成する。
+   * @param entry - Folderのインスタンス
+   * @param tree - Treeのインスタンス
+   */
   private async handleFolderEntry(entry: Folder, tree: Tree) {
     const subTree = await this.generateTree(entry);
     if (subTree) {
@@ -343,6 +363,11 @@ export class Repository {
     }
   }
 
+  /**
+   * Folderのインスタンスを受け取り、再帰的にTreeを生成する。
+   * @param folder - Folderのインスタンス
+   * @returns 生成したルートTreeのPromiseオブジェクト
+   */
   async generateTree(folder: Folder): Promise<Tree> {
     const tree = await Tree.init(folder.name);
     const entries = Object.entries(folder.contents);
@@ -356,6 +381,12 @@ export class Repository {
     return tree;
   }
 
+  /**
+   * Treeのインスタンスを再帰的に検索し、指定したIDのBlobFileを返す。
+   * @param id - 検索するBlobFileのID
+   * @param tree - 検索するTreeのインスタンス
+   * @returns 指定したIDのBlobFileを返す。見つからない場合はnullを返す。
+   */
   searchTree(id: string, tree: Tree): BlobFile | null {
     for (const key in tree.entry) {
       const entry = tree.entry[key];
@@ -371,6 +402,10 @@ export class Repository {
     return null;
   }
 
+  /**
+   * 現在のステージングされているファイルをFileListに追加し、Treeを生成する。
+   * @returns 生成したツリーのPromiseオブジェクト
+   */
   async generateRepositoryTree(): Promise<Tree> {
     await this.addFileList(Object.values(this.index.stagedFiles));
     return await this.generateTree(Contents.folder);
