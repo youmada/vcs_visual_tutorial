@@ -100,6 +100,29 @@ describe("Repositoryクラスのテスト", () => {
     repository.checkOut("testBranch");
 
     repository.checkOut("master");
-    console.log(repository);
+  });
+
+  test("ステージングに入れていないファイルが3回目のコミットでスナップショットとして反映されることを確認する", async () => {
+    // 1回目のコミット
+    repository.stage([file]);
+    await repository.commit("1回目のコミット");
+
+    // 2回目のコミット
+    const file2 = await BlobFile.init("stagedTestFile2", "ステージングテスト用ファイル2", "/");
+    rootFolder.insertContent(file2);
+    repository.stage([file2]);
+   await repository.commit("2回目のコミット");
+
+    // 3回目のコミット
+    const file3 = await BlobFile.init("stagedTestFile3", "ステージングテスト用ファイル3", "/");
+    rootFolder.insertContent(file3);
+    repository.stage([file3]);
+    await repository.commit("3回目のコミット");
+
+    // 3回目のコミットのツリーには、ステージングされていないファイル2も含まれていることを確認する
+    const thirdCommit = repository.commitList[repository.head!];
+    const thirdTree = Object.values(thirdCommit.tree.entry);
+    expect(thirdTree.find((entry) => entry.getId() == file2.getId())).toBeDefined();
+    expect(thirdTree.find((entry) => entry.getId() == file.getId())).toBeDefined();
   });
 });

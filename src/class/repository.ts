@@ -339,11 +339,15 @@ export class Repository {
       const stagedFile = this.index.stagedFiles[entry.getId()];
       const file = this.fileList[stagedFile.getId()];
       tree.addEntry(file);
+      return;
     }
+    // 2回目以降のコミットの場合、親コミットのツリーからファイルを取得し、treeに追加する
+    // つまり、今回のコミットでステージングしていないファイルは、親コミットのツリーから取得する
     if (this.head !== null) {
-      const parentID = this.commitList[this.head].getParentId();
-      const parentTree = parentID == null ? this.commitList[this.head].tree : this.commitList[parentID].tree;
-      const file = this.searchTree(entry.getId(), parentTree);
+      // const parentID = this.commitList[this.head].getId();
+      // コミットでは、最後の段階でthis.headが更新されるので、treeを作る時は、今回のコミットの親の親コミットidを取得してしまう。
+      const parentCommitTree = this.commitList[this.head].tree;
+      const file = this.searchTree(entry.getId(), parentCommitTree);
       if (file !== null) {
         tree.addEntry(file);
       }
@@ -378,6 +382,7 @@ export class Repository {
         await this.handleFolderEntry(entry, tree);
       }
     }
+    await tree.createId();
     return tree;
   }
 

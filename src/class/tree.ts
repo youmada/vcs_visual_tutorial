@@ -26,7 +26,7 @@ export class Tree {
   static async init(name: string): Promise<Tree> {
     const tree = new Tree();
     tree.name = name;
-    tree.id = await tree.createId();
+    await tree.createId();
     return tree;
   }
 
@@ -50,20 +50,16 @@ export class Tree {
 
   /**
    * ツリーの ID を生成します。 TreeオブジェクトのエントリIDを結合してハッシュ化します。
-   * @returns 生成されたツリーの ID
    */
-  private async createId(): Promise<string> {
+  async createId() {
     const combineId = () => {
-      let sumIDString = "";
-      for (const key in this.entry) {
-        sumIDString += key;
-      }
-      return sumIDString;
+      const key = Object.keys(this.entry).sort();
+      return key.join("");
     };
     const msgUint8 = new TextEncoder().encode(combineId());
     const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-    return hashHex;
+    this.id = hashHex;
   }
 }
