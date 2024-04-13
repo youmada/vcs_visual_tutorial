@@ -15,7 +15,7 @@ describe("BlobFile", () => {
     expect(blobFile.id).toMatch(/^[0-9a-f]{40}$/i);
   });
   it("updateTextメソッドのテスト", async () => {
-    await blobFile.updateText("Updated text");
+     blobFile.updateText("Updated text");
     expect(blobFile.text).toBe("Updated text");
   });
 
@@ -31,7 +31,7 @@ describe("BlobFile", () => {
 
   it("updateIdメソッドのテスト", async () => {
     const oldId = blobFile.id;
-   await blobFile.updateText("Updated text");
+     blobFile.updateText("Updated text");
     await blobFile.updateId();
     expect(blobFile.id).not.toBe(oldId);
   });
