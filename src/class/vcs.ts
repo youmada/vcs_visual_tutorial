@@ -3,12 +3,20 @@ import { Contents } from "./contents";
 import { Folder } from "./folder";
 import { Repository } from "./repository";
 
+/**
+ * バージョン管理システムを表すクラス。
+ * このクラスは、リポジトリ、変更されたファイルのリスト、およびリポジトリの状態を管理します。
+ * @property repository - リポジトリを表す Repository インスタンス。
+ * @property changeFiles - 変更されたファイルのリスト。ファイルが変更されると、このリストに追加されます。
+ */
+
 export class Vcs {
   static repository: Repository = new Repository();
   static changeFiles: BlobFile[] = [];
   /**
-   * ファイルをステージングエリアに追加する
-   * @param files - ステージングエリアに追加するファイル Vcs.changedFilesの配列が入る
+   * ステージングエリアにすでに同じファイルが存在するか確認する。
+   * @param file - ステージングエリアに追加するファイル
+   * @returns 同じファイルが存在する場合は、そのファイルを返します。そうでない場合は、null を返します。
    */
   static checkSameFile(file: BlobFile) {
     const files = Object.values(Vcs.repository.index.stagedFiles);
@@ -19,7 +27,7 @@ export class Vcs {
   }
 
   /**
-   *
+   * ファイルが変更されたかどうかを確認し、変更された場合は変更されたファイルを changeFiles プロパティに追加します。
    * @param newFile - ファイルの内容を書き換えた BlobFile インスタンス。
    * @param prevId - ファイルの ID。 このIDはファイルを書き換えて、IDを変更する前のIDです。
    * @returns ファイルが変更された場合は、changeFiles プロパティにファイルを追加します。
@@ -44,6 +52,7 @@ export class Vcs {
    * @param id - 検索するファイルの ID。
    * @param folder - ファイルを検索する Folder インスタンス。
    * @returns 与えられた名前と ID を持つファイルが見つかった場合は、見つかったファイルを表す BlobFile インスタンスを返します。
+   * そうでない場合は、null を返します。
    **/
   static searchChangeFile(item: BlobFile, id: string, folder: Folder): BlobFile | null {
     for (const contentName in folder.contents) {
