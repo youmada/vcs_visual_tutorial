@@ -3,11 +3,12 @@ import { BlobFile } from "./blobFile";
 import { Contents } from "./contents";
 import { Folder } from "./folder";
 import { Layout } from "./layout";
-import StagingAreaLayout from "./stagingAreaLayout";
+import { StagingAreaLayout } from "./stagingAreaLayout";
 import { Vcs } from "./vcs";
 
 export class WorkingAreaLayout {
   static activeContents: BlobFile | Folder | null = null;
+  
   static buttonContainer(): HTMLDivElement {
     const buttonContainer = document.createElement("div");
     buttonContainer.classList.add("button-Container");
@@ -123,7 +124,7 @@ export class WorkingAreaLayout {
     return fileDisplayArea;
   }
 
-  static createWorkingArea() {
+  static createWorkingArea(): HTMLDivElement {
     // 初期化する
     Layout.working.innerHTML = `
     <h3>Working</h3>

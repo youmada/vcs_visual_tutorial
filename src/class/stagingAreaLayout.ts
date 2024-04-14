@@ -1,7 +1,7 @@
 import { FormData, showModal } from "../util";
 import { Layout } from "./layout";
 import { Vcs } from "./vcs";
-class StagingAreaLayout {
+export class StagingAreaLayout {
   static createStagingArea(): HTMLDivElement {
     // Staging area title
     const title = document.createElement("h3");
@@ -108,7 +108,6 @@ class StagingAreaLayout {
     return form;
   }
 }
-export default StagingAreaLayout;
 
 interface commitData {
   message: string;
