@@ -209,15 +209,29 @@ h1 {
   background-color: #0056b3; /* ホバー時の色は適宜変更 */
 }
 
-.commit-element {
+.commit-tree {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+}
+
+.commit-element {
+  width: 50px;
+  height: 50px;
   margin: 10px 0;
   border-radius: 50%;
   padding: 10px;
   border: 1px solid #ccc;
   background-color: #ccc;
+}
+
+.commit-element p {
+  margin: auto;
+  text-align: center;
+}
+
+svg {
+  overflow: visible;
 }
 
 @media (prefers-color-scheme: light) {
