@@ -1,16 +1,26 @@
 import { FormData, showModal } from "../util";
 import { Layout } from "./layout";
 import { Vcs } from "./vcs";
+
+/**
+ * ステージングエリアのレイアウトを管理するクラス。
+ */
+
 export class StagingAreaLayout {
+  /**
+   * ステージングエリアを作成します。
+   * @returns 作成されたステージングエリアのHTMLDivElement
+   */
   static createStagingArea(): HTMLDivElement {
-    // Staging area title
+    // ステージングエリアのタイトルを作成
     const title = document.createElement("h3");
     title.classList.add("area-title");
-    title.textContent = "Staging";
+    title.textContent = "ステージング";
 
-    // File display area
+    // ファイル表示エリアを作成
     const fileDisplayArea = StagingAreaLayout.fileDisplayArea();
-    // Append elements to staging area
+
+    // 要素をステージングエリアに追加
     Layout.staging.innerHTML = "";
     Layout.staging.appendChild(title);
     Layout.staging.appendChild(fileDisplayArea);
@@ -18,6 +28,12 @@ export class StagingAreaLayout {
     return Layout.staging;
   }
 
+  /**
+   * テキストとクリックイベントハンドラを指定してボタンを作成します。
+   * @param text ボタンに表示するテキスト
+   * @param fn ボタンがクリックされたときに実行される関数
+   * @returns 作成されたボタンのHTMLButtonElement
+   */
   static createButton(text: string, fn: () => void): HTMLButtonElement {
     const button = document.createElement("button");
     button.textContent = text;
@@ -25,33 +41,23 @@ export class StagingAreaLayout {
     return button;
   }
 
+  /**
+   * ファイル表示エリアを作成します。
+   * @returns 作成されたファイル表示エリアのHTMLDivElement
+   */
   static fileDisplayArea() {
     const container = document.createElement("div");
     container.classList.add("split-container");
 
-    // stagedFileを表示するHTML要素作成
+    // ステージングされたファイルを表示するエリアを作成
     const stagedFileArea = document.createElement("div");
     stagedFileArea.classList.add("split-item");
     stagedFileArea.innerHTML = `
-    <p>staging</p>
+    <p>ステージング</p>
     `;
-    // commitボタンを作成
-    const commitBtn = StagingAreaLayout.createButton("commit", () => {
-      // モーダルの内容となる要素を作成
-      // モーダルを表示
-      showModal<commitData>("Commit Message", StagingAreaLayout.commitMessageModal(), {}, async (formData: FormData<commitData>) => {
-        // コミットメッセージを取得
-        const message = document.getElementById("commitMessage") as HTMLInputElement;
-        formData.message = message.value;
 
-        // コミットを実行
-        if (formData.message) {
-          await Vcs.repository.commit(formData.message);
-          StagingAreaLayout.createStagingArea();
-        }
-      });
-    });
-    stagedFileArea.appendChild(commitBtn);
+    // コミットボタンを作成
+    stagedFileArea.appendChild(StagingAreaLayout.commitBtn());
 
     // ステージングエリアにあるファイルを表示
     const stagedFilesDiv = document.createElement("div");
@@ -65,12 +71,13 @@ export class StagingAreaLayout {
     }
     stagedFileArea.appendChild(stagedFilesDiv);
 
-    // changedFileを表示するHTML要素を作成
+    // 変更されたファイルを表示するエリアを作成
     const changedFileArea = document.createElement("div");
     changedFileArea.classList.add("split-item");
     changedFileArea.innerHTML = `
-    <p>change files</p>
+    <p>変更ファイル</p>
     `;
+
     const changeFilesDiv = document.createElement("div");
     for (const file of Vcs.changeFiles) {
       const fileEle = document.createElement("div");
@@ -80,32 +87,64 @@ export class StagingAreaLayout {
       changeFilesDiv.appendChild(fileEle);
     }
     changedFileArea.appendChild(changeFilesDiv);
-    // stagedボタンを作成
-    const stagedBtn = StagingAreaLayout.createButton("staged", () => {
-      Vcs.repository.stage(Vcs.changeFiles);
-      Vcs.changeFiles = [];
-      StagingAreaLayout.createStagingArea();
-    });
 
-    changedFileArea.appendChild(stagedBtn);
+    // ステージングボタンを作成
+    changedFileArea.appendChild(StagingAreaLayout.stagedBtn());
 
     container.append(stagedFileArea, changedFileArea);
     return container;
   }
 
-  static commitMessageModal(): HTMLFormElement {
+  /**
+   * コミットメッセージのモーダルを作成します。
+   * @returns 作成されたコミットメッセージのモーダルのHTMLFormElement
+   */
+  private static commitMessageModal(): HTMLFormElement {
     const form = document.createElement("form");
     const commitMessageInput = document.createElement("input");
     const submitBtn = document.createElement("button");
     submitBtn.type = "submit";
-    submitBtn.textContent = "commit";
+    submitBtn.textContent = "コミット";
     commitMessageInput.type = "text";
     commitMessageInput.id = "commitMessage";
     commitMessageInput.required = true;
-    commitMessageInput.placeholder = "Enter commit message";
+    commitMessageInput.placeholder = "コミットメッセージを入力してください";
     form.appendChild(commitMessageInput);
     form.appendChild(submitBtn);
     return form;
+  }
+
+  /**
+   * コミットボタンを作成します。
+   * @returns 作成されたコミットボタンのHTMLButtonElement
+   */
+  private static commitBtn() {
+    return StagingAreaLayout.createButton("コミット", () => {
+      // コミットメッセージのモーダルを表示
+      showModal<commitData>("コミットメッセージ", StagingAreaLayout.commitMessageModal(), {}, async (formData: FormData<commitData>) => {
+        // コミットメッセージを取得
+        const message = document.getElementById("commitMessage") as HTMLInputElement;
+        formData.message = message.value;
+
+        // コミットを実行
+        if (formData.message) {
+          await Vcs.repository.commit(formData.message);
+          StagingAreaLayout.createStagingArea();
+        }
+      });
+    });
+  }
+
+  /**
+   * ステージングボタンを作成します。
+   * @returns 作成されたステージングボタンのHTMLButtonElement
+   */
+  private static stagedBtn() {
+    return StagingAreaLayout.createButton("ステージング", () => {
+      Vcs.repository.stage(Vcs.changeFiles);
+      Vcs.changeFiles = [];
+      StagingAreaLayout.createStagingArea();
+    });
   }
 }
 
