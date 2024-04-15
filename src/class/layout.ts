@@ -1,4 +1,5 @@
 import { toggleDisplay } from "../util";
+import { RepositoryAreaLayout } from "./repositoryAreaLayout";
 import { StagingAreaLayout } from "./stagingAreaLayout";
 import { WorkingAreaLayout } from "./workingAreaLayout";
 
@@ -119,7 +120,7 @@ export class Layout {
       // 新しい内容を追加
       // left container
       Layout.container.appendChild(Layout.leftContainer);
-      Layout.leftContainer.appendChild(Layout.repository);
+      Layout.leftContainer.appendChild(RepositoryAreaLayout.createRepositoryArea());
       // right container
       Layout.container.appendChild(Layout.rightContainer);
       Layout.rightContainer.appendChild(StagingAreaLayout.createStagingArea());
@@ -151,7 +152,7 @@ export class Layout {
       vcsPageDiv.innerHTML = "";
       // 新しい内容を追
       Layout.container.appendChild(Layout.leftContainer);
-      Layout.leftContainer.appendChild(Layout.repository);
+      Layout.leftContainer.appendChild(RepositoryAreaLayout.createRepositoryArea());
       Layout.container.appendChild(Layout.rightContainer);
       Layout.rightContainer.appendChild(StagingAreaLayout.createStagingArea());
       Layout.rightContainer.appendChild(WorkingAreaLayout.createWorkingArea());

@@ -1,5 +1,6 @@
 import { FormData, showModal } from "../util";
 import { Layout } from "./layout";
+import { RepositoryAreaLayout } from "./repositoryAreaLayout";
 import { Vcs } from "./vcs";
 
 /**
@@ -130,6 +131,7 @@ export class StagingAreaLayout {
         if (formData.message) {
           await Vcs.repository.commit(formData.message);
           StagingAreaLayout.createStagingArea();
+          RepositoryAreaLayout.createRepositoryArea();
         }
       });
     });
