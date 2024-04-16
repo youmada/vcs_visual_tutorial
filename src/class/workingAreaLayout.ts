@@ -56,8 +56,10 @@ export class WorkingAreaLayout {
     formData.text = textInput.value;
     // ファイルを作成
     await Contents.addFile(formData.name, formData.text, Contents.currentParent);
+    Vcs.changeFiles.push(Contents.folder.contents[formData.name] as BlobFile);
     // ファイルを作成した後、WorkingAreaを再描画
     WorkingAreaLayout.createWorkingArea();
+    StagingAreaLayout.createStagingArea();
   }
 
   private static buttonContainer(): HTMLDivElement {
