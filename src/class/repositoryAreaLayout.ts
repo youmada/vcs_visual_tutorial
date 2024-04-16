@@ -34,10 +34,6 @@ export class RepositoryAreaLayout {
     const commitElement = document.createElement("div");
     commitElement.classList.add("commit-element");
     commitElement.setAttribute("data-commit-id", commit.getId());
-    const commitMessage = document.createElement("p");
-    commitMessage.textContent = commit.message;
-    commitElement.appendChild(commitMessage);
-
     return commitElement;
   }
 
@@ -53,8 +49,8 @@ export class RepositoryAreaLayout {
     const latestCommit = Vcs.repository.commitList[head!];
     // SVG要素を作成し、それをコミットツリーに追加
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", "100%");
-    svg.setAttribute("height", "100%");
+    // svg.setAttribute("width", "100%");
+    // svg.setAttribute("height", "100%");
     commitTree.appendChild(svg);
     // 再帰的にコミット要素を生成
     RepositoryAreaLayout.recursiveCreateCommitElement(latestCommit, commitTree);
@@ -93,16 +89,19 @@ export class RepositoryAreaLayout {
       // コミット要素と親コミット要素の位置を取得
       const commitElementRect = commitElement.getBoundingClientRect();
       const parentCommitElementRect = parentCommitElement.getBoundingClientRect();
-
       console.log(commitElementRect);
       console.log(parentCommitElementRect);
 
+      // コミット要素と親コミット要素の中心のx座標を計算
+      const commitElementCenterX = (commitElementRect.left + commitElementRect.width / 2) - 20;
+      const parentCommitElementCenterX = (parentCommitElementRect.left + parentCommitElementRect.width / 2) - 20;
+
       // SVGライン要素を作成し、それをSVG要素に追加
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", commitElementRect.left.toString());
-      line.setAttribute("y1", commitElementRect.top.toString());
-      line.setAttribute("x2", parentCommitElementRect.left.toString());
-      line.setAttribute("y2", parentCommitElementRect.bottom.toString());
+      line.setAttribute("x1", (commitElementCenterX).toString());
+      line.setAttribute("y1", (commitElementRect.bottom + 40).toString());
+      line.setAttribute("x2", (parentCommitElementCenterX).toString());
+      line.setAttribute("y2", (commitElementRect.top - 40).toString());
       line.setAttribute("stroke", "black");
       line.setAttribute("stroke-width", "5");
       line.setAttribute("stroke-dasharray", "4 2");
