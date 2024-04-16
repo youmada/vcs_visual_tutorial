@@ -11,17 +11,20 @@ export class Commit {
   private id: string | null;
   message: string;
   tree: Tree;
+  private branch: string;
   private parentCommitId: string | null;
 
   /**
    * コミットを初期化する。constructorメソッドでコミットを初期化することは想定しない。initメソッドを使用すること。
    * @param tree The tree associated with the commit.
+   * @param branch The branch to which the commit belongs.
    */
-  constructor(tree: Tree) {
+  constructor(tree: Tree, branch: string) {
     this.id = null;
     this.message = "";
     this.tree = tree;
     this.parentCommitId = null;
+    this.branch = branch;
   }
 
   /**
@@ -29,14 +32,24 @@ export class Commit {
    * @param message コミットメッセージ。
    * @param tree コミットに関連付けられたツリー。
    * @param parentCommitId 親コミットID。デフォルトはnull。
+   * @param branch コミットが属するブランチ名。
    * @returns 初期化されたコミットオブジェクトを返します。
    */
-  static async init(message: string, tree: Tree, parentCommitId: string | null = null): Promise<Commit> {
-    const commit = new Commit(tree);
+  static async init(message: string, tree: Tree, parentCommitId: string | null = null, branch: string): Promise<Commit> {
+    const commit = new Commit(tree, branch);
     commit.message = message;
     commit.parentCommitId = parentCommitId;
     commit.id = await commit.createId();
     return commit;
+  }
+
+  /**
+   * ブランチ名を取得する。
+   * @returns ブランチ名を返す。
+   */
+
+  getBranch() {
+    return this.branch;
   }
 
   /**

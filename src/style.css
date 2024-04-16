@@ -216,17 +216,8 @@ h1 {
 /* コミットツリー */
 
 .commit-tree {
-  height: calc(100% - 2rem); 
-  display: flex;
-  flex-direction: column;
-}
-
-.commit-element {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #ccc;
-  margin: 40px auto;
+  height: calc(100% - 2rem);
+  overflow: auto;
 }
 
 svg {

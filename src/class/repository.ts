@@ -314,7 +314,7 @@ export class Repository {
   async commit(message: string) {
     const newTree = await this.generateRepositoryTree();
     this.treeList[newTree.getId()] = newTree;
-    const newCommit = await Commit.init(message, newTree, this.head);
+    const newCommit = await Commit.init(message, newTree, this.head, this.currentBranch);
     this.commitList[newCommit.getId()] = newCommit;
     if (this.checkBranch("master")) {
       this.branchList[this.currentBranch] = newCommit.getId();
