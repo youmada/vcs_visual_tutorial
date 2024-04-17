@@ -95,6 +95,7 @@ export class Repository {
       this.currentBranch = name;
       const parentCommit = this.commitList[id];
       const files: BlobFile[] = [];
+      // ブランチを作成する際、親コミットのファイルをステージングする
       Object.values(parentCommit.tree.entry).forEach((content: BlobFile | Tree | Folder) => {
         if (content instanceof BlobFile) {
           files.push(content);
@@ -102,6 +103,8 @@ export class Repository {
       });
       this.stage(files);
       const head = await this.commit(`${name} branch created`);
+      // 現在のブランチのhead以外から新しいブランチを作成する場合、新しいブランチのheadに親コミットのIDを設定する
+      this.commitList[head].setParentCommitId(id);
       this.branchList[name] = head!;
       return head;
     } else return null;

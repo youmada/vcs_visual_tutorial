@@ -13,6 +13,7 @@ export class Commit {
   tree: Tree;
   private branch: string;
   private parentCommitId: string | null;
+  time: Date;
 
   /**
    * コミットを初期化する。constructorメソッドでコミットを初期化することは想定しない。initメソッドを使用すること。
@@ -25,6 +26,7 @@ export class Commit {
     this.tree = tree;
     this.parentCommitId = null;
     this.branch = branch;
+    this.time = new Date();
   }
 
   /**
@@ -41,6 +43,15 @@ export class Commit {
     commit.parentCommitId = parentCommitId;
     commit.id = await commit.createId();
     return commit;
+  }
+
+  /**
+   * コミットの親コミットIDを設定する。
+   * @param parentCommitId 親コミットID。
+   */
+
+  setParentCommitId(parentCommitId: string) {
+    this.parentCommitId = parentCommitId;
   }
 
   /**

@@ -223,7 +223,7 @@ h1 {
 }
 
 svg {
-  overflow: visible;
+  overflow: auto;
 }
 
 

@@ -80,22 +80,17 @@ export class RepositoryAreaLayout {
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
     commitTree.appendChild(svg);
-    // 再帰的にコミット要素を生成
-    // ブランチをずらすためのカウンター
-    let count = 0;
-    // ブランチごとにコミット要素を生成
-    for (const branch in Vcs.repository.branchList) {
-      // 各ブランチの最新コミット
-      const latestCommit = Vcs.repository.commitList[Vcs.repository.branchList[branch]];
-      const initialX = svg.getBoundingClientRect().width / 2 - count * 100;
-      const initialY = svg.getBoundingClientRect().height - 100;
-      RepositoryAreaLayout.recursiveCreateCommitElement(latestCommit, commitTree, svg, initialX, initialY);
-      setTimeout(() => {
-        // 再帰的にコミット要素同士を繋ぐ線を生成
-        RepositoryAreaLayout.createAllLines(latestCommit, commitTree, svg);
-      }, 0);
-      count++;
-    }
+    // LIFO形式でコミット要素を生成
+    const initialX = svg.getBoundingClientRect().width / 2;
+    const initialY = svg.getBoundingClientRect().height - 100;
+    RepositoryAreaLayout.createCommitElementsLIFO(commitTree, svg, initialX, initialY);
+    setTimeout(() => {
+      // 全てのコミット要素同士を繋ぐ線を生成
+      for (const branchHead in Vcs.repository.branchList) {
+        const commit = Vcs.repository.commitList[Vcs.repository.branchList[branchHead]];
+        RepositoryAreaLayout.createAllLines(commit, commitTree, svg);
+      }
+    }, 0);
   }
 
   /**
@@ -106,33 +101,54 @@ export class RepositoryAreaLayout {
    * @param x x座標
    * @param y y座標
    */
-  private static recursiveCreateCommitElement(
-    commit: Commit,
-    commitTree: HTMLDivElement,
-    svg: SVGSVGElement,
-    x: number,
-    y: number
-  ): { x: number; y: number } {
-    const parentId = commit.getParentId();
-    let commitElementCoords = { x, y };
-    if (parentId !== null) {
-      const parentCommit = Vcs.repository.commitList[parentId];
-      const parentY = y; // 新しいコミット（子コミット）を上に配置
-      let parentX = x;
-      // 次に親コミットの要素を作成
-      commitElementCoords = RepositoryAreaLayout.recursiveCreateCommitElement(parentCommit, commitTree, svg, parentX, parentY);
-    }
-    // 既にコミット要素が存在する場合は何もしない
-    if (svg.querySelector(`[data-commit-id='${commit.getId()}']`)) return commitElementCoords;
-    // コミット要素を作成し、それをコミットツリーに追加
-    const commitElement = RepositoryAreaLayout.commitElement(commit, commitElementCoords.x, commitElementCoords.y - 100);
-    svg.appendChild(commitElement);
-    
-    commitElementCoords["x"] = parseFloat(commitElement.getAttribute("cx")!);
-    commitElementCoords["y"] = parseFloat(commitElement.getAttribute("cy")!);
+  private static createCommitElementsLIFO(commitTree: HTMLDivElement, svg: SVGSVGElement, x: number, y: number): void {
+    const stack = RepositoryAreaLayout.stackCommit();
 
-    return commitElementCoords;
+    let branchXOffset = 0;
+    const branchOffsets: { [name: string]: number } = {
+      master: 0,
+    };
+
+    while (stack.length > 0) {
+      const currentCommit = stack.pop()!;
+      // ブランチごとにx座標をオフセット
+      if (branchOffsets[currentCommit.getBranch()] == null) {
+        branchXOffset += 100;
+        branchOffsets[currentCommit.getBranch()] = branchXOffset;
+      }
+      const commitX = x + branchOffsets[currentCommit.getBranch()];
+      // コミット要素を作成し、それをコミットツリーに追加
+      const commitElement = RepositoryAreaLayout.commitElement(currentCommit, commitX, y);
+      svg.appendChild(commitElement);
+      y -= 100; // 新しいコミット（子コミット）を上に配置する
+    }
+
+    console.log(branchOffsets);
+    commitTree.scrollTop = commitTree.scrollHeight;
   }
+
+  private static stackCommit(): Commit[] {
+    const stack: Commit[] = [];
+    // リポジトリ内の全てのブランチを取得
+    const branches = Object.values(Vcs.repository.branchList);
+    for (const branch of branches) {
+      console.log(branch);
+      let currentCommit = Vcs.repository.commitList[branch];
+      while (currentCommit !== null) {
+        // 既にコミット要素が存在する場合は何もしない
+        if (stack.some((commit) => commit.getId() === currentCommit.getId())) break;
+        stack.push(currentCommit);
+        if (currentCommit.getParentId() === null) break;
+        currentCommit = Vcs.repository.commitList[currentCommit.getParentId()!];
+      }
+    }
+
+    // コミットを時間順にソート
+    stack.sort((a, b) => b.time.getTime() - a.time.getTime());
+    console.log(...stack);
+    return stack;
+  }
+
   /**
    * コミット要素同士を繋ぐ線を生成する。
    * @param commitElement コミット要素
