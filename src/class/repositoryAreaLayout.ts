@@ -63,7 +63,6 @@ export class RepositoryAreaLayout {
       // コミット要素をハイライトし、ハイライト配列に追加
       commitElement.setAttribute("stroke", "blue"); // ハイライト
       RepositoryAreaLayout.highlight.push(commitElement);
-      console.log(Vcs.repository.commitList[commit.getId()]);
     });
     return commitElement;
   }
@@ -108,7 +107,7 @@ export class RepositoryAreaLayout {
     const branchOffsets: { [name: string]: number } = {
       master: 0,
     };
-
+    const branchYOffset = y;
     while (stack.length > 0) {
       const currentCommit = stack.pop()!;
       // ブランチごとにx座標をオフセット
@@ -123,8 +122,28 @@ export class RepositoryAreaLayout {
       y -= 100; // 新しいコミット（子コミット）を上に配置する
     }
 
-    console.log(branchOffsets);
     commitTree.scrollTop = commitTree.scrollHeight;
+    // ブランチ名を表示
+    for (const branchName in branchOffsets) {
+      RepositoryAreaLayout.createBranchName(svg, branchOffsets, branchYOffset, branchName);
+    }
+  }
+
+  /**
+   * それぞれのブランチの要素位置の下部にブランチ名を表示する。
+   * @param svg SVG要素
+   * @param branchOffsets ブランチオフセット
+   * @param branchYOffset ブランチYオフセット
+   * @param branchName ブランチ名
+   * @returns
+   */
+  private static createBranchName(svg: SVGSVGElement, branchOffsets: { [name: string]: number }, branchYOffset: number, branchName: string) {
+    const branchNameElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    branchNameElement.setAttribute("x", (svg.getBoundingClientRect().width / 2 + branchOffsets[branchName] - 30).toString());
+    branchNameElement.setAttribute("y", (branchYOffset + 50).toString());
+    branchNameElement.setAttribute("fill", "gray");
+    branchNameElement.textContent = branchName;
+    svg.appendChild(branchNameElement);
   }
 
   private static stackCommit(): Commit[] {
@@ -132,7 +151,6 @@ export class RepositoryAreaLayout {
     // リポジトリ内の全てのブランチを取得
     const branches = Object.values(Vcs.repository.branchList);
     for (const branch of branches) {
-      console.log(branch);
       let currentCommit = Vcs.repository.commitList[branch];
       while (currentCommit !== null) {
         // 既にコミット要素が存在する場合は何もしない
@@ -145,7 +163,7 @@ export class RepositoryAreaLayout {
 
     // コミットを時間順にソート
     stack.sort((a, b) => b.time.getTime() - a.time.getTime());
-    console.log(...stack);
+
     return stack;
   }
 
@@ -196,8 +214,7 @@ export class RepositoryAreaLayout {
       const parentCommit = Vcs.repository.commitList[parentId];
       const parentCommitElement = svg.querySelector(`[data-commit-id='${parentId}']`) as SVGCircleElement;
       // コミット要素同士を繋ぐ線を作成
-      console.log(commit, parentCommit);
-      console.log(commitElement, parentCommitElement);
+
       RepositoryAreaLayout.createLine(commitElement, parentCommitElement, svg);
       // 親コミットの線を生成
       RepositoryAreaLayout.createAllLines(parentCommit, commitTree, svg);
