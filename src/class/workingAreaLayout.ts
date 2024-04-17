@@ -64,7 +64,7 @@ export class WorkingAreaLayout {
 
   private static buttonContainer(): HTMLDivElement {
     const buttonContainer = document.createElement("div");
-    buttonContainer.classList.add("button-Container");
+    buttonContainer.classList.add("button-container");
 
     // フォルダ作成のボタン
     const createFolderButton = WorkingAreaLayout.createButton(

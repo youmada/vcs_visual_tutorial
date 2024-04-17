@@ -4,6 +4,10 @@ import { Vcs } from "./vcs";
 
 export class RepositoryAreaLayout {
   /**
+   * ハイライト要素を格納する配列
+   */
+  private static highlight: SVGCircleElement[] = [];
+  /**
    * リポジトリエリアを作成します。
    * @returns 作成されたリポジトリエリアのHTMLDivElement
    *
@@ -21,6 +25,8 @@ export class RepositoryAreaLayout {
     if (Vcs.repository.head !== null) {
       RepositoryAreaLayout.createCommitTree();
     }
+    // ボタンコンテナをリポジトリエリアに追加
+    Layout.repository.appendChild(RepositoryAreaLayout.buttonContainer());
 
     return Layout.repository;
   }
@@ -39,14 +45,32 @@ export class RepositoryAreaLayout {
     commitElement.setAttribute("r", "30");
     commitElement.setAttribute("fill", "#ccc");
     commitElement.setAttribute("data-commit-id", commit.getId());
+    // クリックイベントリスナーを追加
+    commitElement.addEventListener("click", () => {
+      // すでにハイライトされている場合、ハイライトを解除
+      if (commitElement.getAttribute("stroke") === "blue") {
+        commitElement.removeAttribute("stroke");
+        RepositoryAreaLayout.highlight = RepositoryAreaLayout.highlight.filter((element) => element !== commitElement);
+        return;
+      }
+
+      // ハイライト配列に要素が存在する場合、最後の要素を削除
+      if (RepositoryAreaLayout.highlight.length > 0) {
+        const lastElement = RepositoryAreaLayout.highlight.pop()!;
+        lastElement.setAttribute("fill", "#ccc"); // ハイライトを解除
+      }
+
+      // コミット要素をハイライトし、ハイライト配列に追加
+      commitElement.setAttribute("stroke", "blue"); // ハイライト
+      RepositoryAreaLayout.highlight.push(commitElement);
+    });
     return commitElement;
   }
 
   /**
    * コミットツリーを作成する。
-   * @returns 作成されたコミットツリーのHTMLDivElement
    */
-  private static createCommitTree() {
+  private static createCommitTree(): void {
     const commitTree = document.createElement("div");
     commitTree.classList.add("commit-tree");
     Layout.repository.appendChild(commitTree);
@@ -77,9 +101,11 @@ export class RepositoryAreaLayout {
    * 再帰的にコミット要素を生成して、コミットツリーに追加する。
    * @param commit 最新のコミット
    * @param commitTree コミットツリー
-   * @returns 作成されたコミットツリーのHTMLDivElement
+   * @param svg SVG要素
+   * @param x x座標
+   * @param y y座標
    */
-  private static recursiveCreateCommitElement(commit: Commit, commitTree: HTMLDivElement, svg: SVGSVGElement, x: number, y: number) {
+  private static recursiveCreateCommitElement(commit: Commit, commitTree: HTMLDivElement, svg: SVGSVGElement, x: number, y: number): void {
     // 既にコミット要素が存在する場合は何もしない
     if (svg.querySelector(`[data-commit-id='${commit.getId()}']`)) return;
     // コミット要素を作成し、それをコミットツリーに追加
@@ -145,5 +171,35 @@ export class RepositoryAreaLayout {
       // 親コミットの線を生成
       RepositoryAreaLayout.createAllLines(parentCommit, commitTree, svg);
     }
+  }
+
+  /**
+   * ブランチ生成ボタンを作成する。
+   * @returns 作成されたブランチ生成ボタンのHTMLButtonElement
+   */
+  private static createBranchButton(): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.textContent = "ブランチを生成";
+    button.addEventListener("click", async () => {
+      if (RepositoryAreaLayout.highlight.length === 0) return alert("ブランチを生成するコミットをクリックしてください");
+      const branchName = prompt("ブランチ名を入力してください");
+      if (branchName === null || branchName === "") return;
+      const chosenCommitId = RepositoryAreaLayout.highlight[0].getAttribute("data-commit-id");
+      await Vcs.repository.createBranch(branchName, chosenCommitId!);
+      RepositoryAreaLayout.createRepositoryArea();
+    });
+    return button;
+  }
+
+  /**
+   * リポジトリエリアのボタンコンテナを作成する。
+   * @returns 作成されたボタンコンテナのHTMLDivElement
+   */
+
+  private static buttonContainer(): HTMLDivElement {
+    const buttonContainer = document.createElement("div");
+    buttonContainer.classList.add("button-container");
+    buttonContainer.appendChild(RepositoryAreaLayout.createBranchButton());
+    return buttonContainer;
   }
 }
