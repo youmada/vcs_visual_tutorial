@@ -53,6 +53,14 @@ export class Commit {
   }
 
   /**
+   * ブランチ名を設定する。
+   * @param branch ブランチ名。
+   */
+  setBranch(branch: string) {
+    this.branch = branch;
+  }
+
+  /**
    * コミットIDを生成する。現在時刻とメッセージからSHA-1ハッシュを生成する。
    * @returns 生成されたコミットID。Promiseオブジェクトで返される。
    */

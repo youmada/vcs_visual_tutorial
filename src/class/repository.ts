@@ -321,6 +321,7 @@ export class Repository {
     } else {
       this.branchList["master"] = newCommit.getId();
       this.currentBranch = "master";
+      newCommit.setBranch("master");
     }
     this.head = newCommit.getId();
     this.index.clearStage();

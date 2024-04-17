@@ -63,6 +63,7 @@ export class RepositoryAreaLayout {
       // コミット要素をハイライトし、ハイライト配列に追加
       commitElement.setAttribute("stroke", "blue"); // ハイライト
       RepositoryAreaLayout.highlight.push(commitElement);
+      console.log(Vcs.repository.commitList[commit.getId()]);
     });
     return commitElement;
   }
@@ -105,21 +106,33 @@ export class RepositoryAreaLayout {
    * @param x x座標
    * @param y y座標
    */
-  private static recursiveCreateCommitElement(commit: Commit, commitTree: HTMLDivElement, svg: SVGSVGElement, x: number, y: number): void {
-    // 既にコミット要素が存在する場合は何もしない
-    if (svg.querySelector(`[data-commit-id='${commit.getId()}']`)) return;
-    // コミット要素を作成し、それをコミットツリーに追加
-    const commitElement = RepositoryAreaLayout.commitElement(commit, x, y);
-    svg.appendChild(commitElement);
+  private static recursiveCreateCommitElement(
+    commit: Commit,
+    commitTree: HTMLDivElement,
+    svg: SVGSVGElement,
+    x: number,
+    y: number
+  ): { x: number; y: number } {
     const parentId = commit.getParentId();
+    let commitElementCoords = { x, y };
     if (parentId !== null) {
       const parentCommit = Vcs.repository.commitList[parentId];
-      const parentY = y - 100;
+      const parentY = y; // 新しいコミット（子コミット）を上に配置
       let parentX = x;
-      RepositoryAreaLayout.recursiveCreateCommitElement(parentCommit, commitTree, svg, parentX, parentY);
+      // 次に親コミットの要素を作成
+      commitElementCoords = RepositoryAreaLayout.recursiveCreateCommitElement(parentCommit, commitTree, svg, parentX, parentY);
     }
-  }
+    // 既にコミット要素が存在する場合は何もしない
+    if (svg.querySelector(`[data-commit-id='${commit.getId()}']`)) return commitElementCoords;
+    // コミット要素を作成し、それをコミットツリーに追加
+    const commitElement = RepositoryAreaLayout.commitElement(commit, commitElementCoords.x, commitElementCoords.y - 100);
+    svg.appendChild(commitElement);
+    
+    commitElementCoords["x"] = parseFloat(commitElement.getAttribute("cx")!);
+    commitElementCoords["y"] = parseFloat(commitElement.getAttribute("cy")!);
 
+    return commitElementCoords;
+  }
   /**
    * コミット要素同士を繋ぐ線を生成する。
    * @param commitElement コミット要素
@@ -161,12 +174,14 @@ export class RepositoryAreaLayout {
    * @param svg SVG要素
    */
   private static createAllLines(commit: Commit, commitTree: HTMLDivElement, svg: SVGSVGElement) {
-    const commitElement = commitTree.querySelector(`[data-commit-id='${commit.getId()}']`) as SVGCircleElement;
     const parentId = commit.getParentId();
     if (parentId !== null) {
+      const commitElement = svg.querySelector(`[data-commit-id='${commit.getId()}']`) as SVGCircleElement;
       const parentCommit = Vcs.repository.commitList[parentId];
-      const parentCommitElement = commitTree.querySelector(`[data-commit-id='${parentCommit.getId()}']`) as SVGCircleElement;
+      const parentCommitElement = svg.querySelector(`[data-commit-id='${parentId}']`) as SVGCircleElement;
       // コミット要素同士を繋ぐ線を作成
+      console.log(commit, parentCommit);
+      console.log(commitElement, parentCommitElement);
       RepositoryAreaLayout.createLine(commitElement, parentCommitElement, svg);
       // 親コミットの線を生成
       RepositoryAreaLayout.createAllLines(parentCommit, commitTree, svg);
