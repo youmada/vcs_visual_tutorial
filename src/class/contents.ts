@@ -1,5 +1,6 @@
 import { BlobFile } from "./blobFile";
 import { Folder } from "./folder";
+import { Tree } from "./tree";
 
 /**
  * アプリケーションのファイルとフォルダのコンテンツを管理するクラス。
@@ -91,5 +92,36 @@ export class Contents {
       }
     }
     return null;
+  }
+
+  /**
+   * チェックアウト時に、コミットのツリー情報を元にファイルとフォルダの内容を更新します。
+   * @param tree チェックアウトされたコミットのツリー情報
+   */
+
+  private static async updateContents(tree: Tree, parent: Folder): Promise<void> {
+    for (const key in tree.entry) {
+      const item = tree.entry[key];
+      if (item instanceof BlobFile) {
+        await Contents.addFile(item.name, item.text, parent);
+      } else if (item instanceof Tree) {
+        await Contents.addFolder(item.name, parent);
+        Contents.currentParent = parent.contents[item.name] as Folder;
+        await Contents.updateContents(item, Contents.currentParent);
+      }
+    }
+  }
+
+  /**
+   * チェックアウト時の操作を管理します。
+   * @param tree チェックアウトされたコミットのツリー情報
+   */
+
+  static async checkoutHandler(tree: Tree) {
+    Contents.folder.contents = {};
+    Contents.currentParent = Contents.folder;
+    await Contents.updateContents(tree, Contents.folder);
+    // フォルダ構成を復元してから、現在の親フォルダをルートフォルダに設定します。
+    Contents.currentParent = Contents.folder;
   }
 }

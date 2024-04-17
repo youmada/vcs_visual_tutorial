@@ -1,6 +1,8 @@
 import { Commit } from "./commit";
+import { Contents } from "./contents";
 import { Layout } from "./layout";
 import { Vcs } from "./vcs";
+import { WorkingAreaLayout } from "./workingAreaLayout";
 
 export class RepositoryAreaLayout {
   /**
@@ -240,6 +242,26 @@ export class RepositoryAreaLayout {
   }
 
   /**
+   * チェックアウトボタンを作成する。
+   * @returns 作成されたチェックアウトボタンのHTMLButtonElement
+   */
+
+  private static createCheckoutButton(): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.textContent = "チェックアウト";
+    button.addEventListener("click", async () => {
+      if (RepositoryAreaLayout.highlight.length === 0) return alert("チェックアウトするコミットをクリックしてください");
+      const chosenCommitId = RepositoryAreaLayout.highlight[0].getAttribute("data-commit-id");
+      Vcs.repository.checkOut(chosenCommitId!);
+      console.log(Vcs.repository.commitList[chosenCommitId!].tree);
+      await Contents.checkoutHandler(Vcs.repository.commitList[chosenCommitId!].tree);
+      RepositoryAreaLayout.createRepositoryArea();
+      WorkingAreaLayout.createWorkingArea();
+    });
+    return button;
+  }
+
+  /**
    * リポジトリエリアのボタンコンテナを作成する。
    * @returns 作成されたボタンコンテナのHTMLDivElement
    */
@@ -248,6 +270,7 @@ export class RepositoryAreaLayout {
     const buttonContainer = document.createElement("div");
     buttonContainer.classList.add("button-container");
     buttonContainer.appendChild(RepositoryAreaLayout.createBranchButton());
+    buttonContainer.appendChild(RepositoryAreaLayout.createCheckoutButton());
     return buttonContainer;
   }
 }

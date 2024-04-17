@@ -132,17 +132,16 @@ export class Repository {
     }
   }
 
-  // 現状ブランチの切り替えしかできない。後々コミットの切り替えにも対応する。
   /**
-   * ブランチを切り替える。
-   * @param name - 切り替えるブランチ名
+   * ブランチ、コミットを切り替える
+   * @param id - 切り替えるコミットのID
    * @returns 切り替えたブランチの名前を返す。存在しないブランチ名が渡された場合はnullを返す。
    */
-  checkOut(name: string) {
-    if (this.checkBranch(name)) {
-      this.currentBranch = name;
-      this.head = this.branchList[name];
-      this.commitList[this.head].tree;
+
+  checkOut(id: string): string | null{
+    if (this.commitList[id]) {
+      this.head = id;
+      this.currentBranch = this.commitList[id].getBranch();
       return this.currentBranch;
     } else return null;
   }
