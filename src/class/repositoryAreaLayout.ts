@@ -35,6 +35,7 @@ export class RepositoryAreaLayout {
 
   /**
    * ハイライト機能を管理・操作する
+   * @param ele ハイライトする要素
    */
 
   private static highlightHandler(ele: SVGCircleElement): void {
@@ -157,6 +158,16 @@ export class RepositoryAreaLayout {
     branchNameElement.setAttribute("y", (branchYOffset + 50).toString());
     branchNameElement.setAttribute("fill", "gray");
     branchNameElement.textContent = branchName;
+    branchNameElement.style.cursor = "pointer";
+    branchNameElement.addEventListener("click", async () => {
+      const userResponse = confirm(`ブランチ${branchName}にチェックアウトしますか？`);
+      if (!userResponse) return;
+      const branchHead = Vcs.repository.branchList[branchName];
+      Vcs.repository.checkOut(branchHead);
+      await Contents.checkoutHandler(Vcs.repository.commitList[branchHead].tree);
+      RepositoryAreaLayout.createRepositoryArea();
+      WorkingAreaLayout.createWorkingArea();
+    });
     svg.appendChild(branchNameElement);
   }
 
@@ -265,7 +276,6 @@ export class RepositoryAreaLayout {
       if (RepositoryAreaLayout.highlight.length === 0) return alert("チェックアウトするコミットをクリックしてください");
       const chosenCommitId = RepositoryAreaLayout.highlight[0].getAttribute("data-commit-id");
       Vcs.repository.checkOut(chosenCommitId!);
-      console.log(Vcs.repository.commitList[chosenCommitId!].tree);
       await Contents.checkoutHandler(Vcs.repository.commitList[chosenCommitId!].tree);
       RepositoryAreaLayout.createRepositoryArea();
       WorkingAreaLayout.createWorkingArea();
