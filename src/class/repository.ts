@@ -298,9 +298,11 @@ export class Repository {
           // 両方のファイルが変更されている場合。つまりコンフリクト
           conflictFiles.push(commonFiles[fileName]);
         }
+      } else {
+        // 両方のファイルが変更されていない場合
+        changeFiles.push(targetFile);
       }
     }
-
     return [changeFiles, conflictFiles];
   }
 
