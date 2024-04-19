@@ -121,6 +121,14 @@ export class StagingAreaLayout {
    */
   private static commitBtn() {
     return StagingAreaLayout.createButton("コミット", () => {
+      // 過去のコミットにチェックアウトしている時にブランチを作っていない状態でコミットしようとした場合。エラーを表示。
+      const currentCommit = Vcs.repository.head; // 現在のコミットID
+      // 現在のコミットに子コミットが存在するかどうか
+      const isParentCommitId = Object.values(Vcs.repository.commitList).some((commit) => commit.getParentId() === currentCommit);
+      if (isParentCommitId) {
+        alert("過去のコミットから新しくコミットする際は、ブランチを作成してください");
+        return;
+      }
       // コミットメッセージのモーダルを表示
       showModal<commitData>("コミットメッセージ", StagingAreaLayout.commitMessageModal(), {}, async (formData: FormData<commitData>) => {
         // コミットメッセージを取得

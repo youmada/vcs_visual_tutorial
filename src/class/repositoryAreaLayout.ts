@@ -99,7 +99,7 @@ export class RepositoryAreaLayout {
     const initialY = svg.getBoundingClientRect().height - 100;
     RepositoryAreaLayout.createCommitElementsLIFO(commitTree, svg, initialX, initialY);
     setTimeout(() => {
-      // 全てのコミット要素同士を繋ぐ線を生成
+      // IDを参照しているコミット要素同士を繋ぐ線を生成
       for (const branchHead in Vcs.repository.branchList) {
         const commit = Vcs.repository.commitList[Vcs.repository.branchList[branchHead]];
         RepositoryAreaLayout.createAllLines(commit, commitTree, svg);
