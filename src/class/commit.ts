@@ -13,6 +13,7 @@ export class Commit {
   tree: Tree;
   private branch: string;
   private parentCommitId: string | null;
+  private secondParentCommitId: string | null;
   time: Date;
 
   /**
@@ -25,6 +26,7 @@ export class Commit {
     this.message = "";
     this.tree = tree;
     this.parentCommitId = null;
+    this.secondParentCommitId = null;
     this.branch = branch;
     this.time = new Date();
   }
@@ -41,6 +43,7 @@ export class Commit {
     const commit = new Commit(tree, branch);
     commit.message = message;
     commit.parentCommitId = parentCommitId;
+    commit.secondParentCommitId = null;
     commit.id = await commit.createId();
     return commit;
   }
@@ -52,6 +55,14 @@ export class Commit {
 
   setParentCommitId(parentCommitId: string) {
     this.parentCommitId = parentCommitId;
+  }
+
+  /**
+   * コミットの2番目の親コミットIDを設定する。
+   * @param parentCommitId 2番目の親コミットID。
+   */
+  setSecondParentCommitId(parentCommitId: string) {
+    this.secondParentCommitId = parentCommitId;
   }
 
   /**
@@ -98,5 +109,13 @@ export class Commit {
    */
   getParentId() {
     return this.parentCommitId;
+  }
+
+  /**
+   * 2番目の親コミットIDを返す。
+   * @returns 2番目の親コミットIDを返す。2番目の親コミットがない場合はnullを返す。
+   */
+  getSecondParentCommitId() {
+    return this.secondParentCommitId;
   }
 }

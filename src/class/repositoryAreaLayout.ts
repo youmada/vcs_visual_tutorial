@@ -78,6 +78,7 @@ export class RepositoryAreaLayout {
     // クリックイベントリスナーを追加
     commitElement.addEventListener("click", () => {
       RepositoryAreaLayout.highlightHandler(commitElement);
+      console.log(commit);
     });
     return commitElement;
   }
@@ -171,18 +172,35 @@ export class RepositoryAreaLayout {
     svg.appendChild(branchNameElement);
   }
 
+  /**
+   * リポジトリ内の全てのコミットをスタックに積む。
+   * @returns スタックに積まれたコミットの配列
+   */
+
   private static stackCommit(): Commit[] {
     const stack: Commit[] = [];
     // リポジトリ内の全てのブランチを取得
     const branches = Object.values(Vcs.repository.branchList);
-    for (const branch of branches) {
-      let currentCommit = Vcs.repository.commitList[branch];
+    for (const key of branches) {
+      let currentCommit = Vcs.repository.commitList[key];
       while (currentCommit !== null) {
         // 既にコミット要素が存在する場合は何もしない
         if (stack.some((commit) => commit.getId() === currentCommit.getId())) break;
         stack.push(currentCommit);
-        if (currentCommit.getParentId() === null) break;
-        currentCommit = Vcs.repository.commitList[currentCommit.getParentId()!];
+
+        // マージコミットの場合、2番目の親コミットをスタックに積む
+        if (currentCommit.getSecondParentCommitId() !== null) {
+          const secondParentCommit = Vcs.repository.commitList[currentCommit.getSecondParentCommitId()!];
+          if (!stack.some((commit) => commit.getId() === secondParentCommit.getId())) {
+            stack.push(secondParentCommit);
+          }
+        }
+        // 親コミットが存在する場合、親コミットをスタックに積む
+        if (currentCommit.getParentId() !== null) {
+          currentCommit = Vcs.repository.commitList[currentCommit.getParentId()!];
+        } else {
+          break;
+        }
       }
     }
 
@@ -243,6 +261,14 @@ export class RepositoryAreaLayout {
       RepositoryAreaLayout.createLine(commitElement, parentCommitElement, svg);
       // 親コミットの線を生成
       RepositoryAreaLayout.createAllLines(parentCommit, commitTree, svg);
+      // マージコミットの場合、2番目の親コミットの線を生成
+      const secondParentCommitId = commit.getSecondParentCommitId();
+      if (secondParentCommitId !== null) {
+        const secondParentCommit = Vcs.repository.commitList[secondParentCommitId];
+        const secondParentCommitElement = svg.querySelector(`[data-commit-id='${commit.getSecondParentCommitId()}']`) as SVGCircleElement;
+        RepositoryAreaLayout.createLine(commitElement, secondParentCommitElement, svg);
+        RepositoryAreaLayout.createAllLines(secondParentCommit, commitTree, svg);
+      }
     }
   }
 

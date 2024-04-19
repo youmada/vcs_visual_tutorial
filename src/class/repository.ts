@@ -166,22 +166,24 @@ export class Repository {
     if (baseCommit == null) return null;
 
     // 共通の親コミットを元に、マージ先と元のブランチの差分ファイルを取得
-    const changeFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit)[0];
-    const conflictFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit)[1];
+    const changeFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit);
     // マージコミットのID
     let commitID;
     // 引数のブランチ名を現在のブランチに変更
     const currentBranch = this.currentBranch;
     this.currentBranch = branchName;
-    if (conflictFiles.length === 0) {
+    if (changeFiles[1].length === 0) {
       // コンフリクトがない場合
-      this.stage(changeFiles);
+      this.stage(changeFiles[0]);
       commitID = await this.commit(`merge ${currentBranch} to ${branchName}`);
     } else {
       // コンフリクトがある場合
-      await this.resolveConflict(conflictFiles, targetCommit, currentCommit);
+      await this.resolveConflict(changeFiles[1], targetCommit, currentCommit);
       commitID = await this.commit(`merge ${currentBranch} to ${branchName}`);
     }
+    // マージ先のコミットに親コミットを設定
+    this.commitList[commitID].setSecondParentCommitId(targetCommit);
+    // マージ先のブランチにHEADを移動
     this.checkOut(commitID);
     return commitID;
   }
