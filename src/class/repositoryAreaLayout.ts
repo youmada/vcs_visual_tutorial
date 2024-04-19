@@ -322,6 +322,7 @@ export class RepositoryAreaLayout {
     button.addEventListener("click", async () => {
       const selectBranch = prompt(`マージ先のブランチ名を入力してください。現在のブランチ名:${Vcs.repository.currentBranch}`);
       if (selectBranch === null || selectBranch === "") return;
+      if (selectBranch === Vcs.repository.currentBranch) return alert("同じブランチにマージすることはできません");
       if (!Vcs.repository.branchList[selectBranch]) return alert("指定されたブランチは存在しません");
       const isMerge = await Vcs.repository.merge(selectBranch);
       if (isMerge == null) {
