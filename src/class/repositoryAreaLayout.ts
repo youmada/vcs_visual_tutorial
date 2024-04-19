@@ -47,6 +47,9 @@ export class RepositoryAreaLayout {
     commitElement.setAttribute("r", "30");
     commitElement.setAttribute("fill", "#ccc");
     commitElement.setAttribute("data-commit-id", commit.getId());
+    if (commit.getId() === Vcs.repository.head) {
+      commitElement.setAttribute("fill", "skyblue");
+    }
     // クリックイベントリスナーを追加
     commitElement.addEventListener("click", () => {
       // すでにハイライトされている場合、ハイライトを解除
@@ -257,6 +260,8 @@ export class RepositoryAreaLayout {
       await Contents.checkoutHandler(Vcs.repository.commitList[chosenCommitId!].tree);
       RepositoryAreaLayout.createRepositoryArea();
       WorkingAreaLayout.createWorkingArea();
+      // ハイライトを解除
+      RepositoryAreaLayout.highlight = [];
     });
     return button;
   }
