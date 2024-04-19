@@ -34,6 +34,30 @@ export class RepositoryAreaLayout {
   }
 
   /**
+   * ハイライト機能を管理・操作する
+   */
+
+  private static highlightHandler(ele: SVGCircleElement): void {
+    // 現在ハイライトしている要素がクリックされた場合、ハイライトを解除
+    if (RepositoryAreaLayout.highlight.length > 0 && RepositoryAreaLayout.highlight[0] === ele) {
+      ele.removeAttribute("stroke");
+      RepositoryAreaLayout.highlight = [];
+      return;
+    }
+    // ハイライトされている要素が存在する場合、最後の要素を削除
+    if (RepositoryAreaLayout.highlight.length > 0) {
+      const lastElement = RepositoryAreaLayout.highlight.pop()!;
+      lastElement.removeAttribute("stroke"); // ハイライトを解除
+    }
+    // ハイライトされている要素が存在しない場合、ハイライトする
+    if (RepositoryAreaLayout.highlight.length === 0) {
+      RepositoryAreaLayout.highlight.push(ele);
+      ele.setAttribute("stroke", "blue"); // ハイライト
+      return;
+    }
+  }
+
+  /**
    * コミット要素を作成する。
    * @param commit commitListの要素
    * @param x x座標
@@ -52,22 +76,7 @@ export class RepositoryAreaLayout {
     }
     // クリックイベントリスナーを追加
     commitElement.addEventListener("click", () => {
-      // すでにハイライトされている場合、ハイライトを解除
-      if (commitElement.getAttribute("stroke") === "blue") {
-        commitElement.removeAttribute("stroke");
-        RepositoryAreaLayout.highlight = RepositoryAreaLayout.highlight.filter((element) => element !== commitElement);
-        return;
-      }
-
-      // ハイライト配列に要素が存在する場合、最後の要素を削除
-      if (RepositoryAreaLayout.highlight.length > 0) {
-        const lastElement = RepositoryAreaLayout.highlight.pop()!;
-        lastElement.setAttribute("fill", "#ccc"); // ハイライトを解除
-      }
-
-      // コミット要素をハイライトし、ハイライト配列に追加
-      commitElement.setAttribute("stroke", "blue"); // ハイライト
-      RepositoryAreaLayout.highlight.push(commitElement);
+      RepositoryAreaLayout.highlightHandler(commitElement);
     });
     return commitElement;
   }
