@@ -62,4 +62,24 @@ export class Tree {
     const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
     this.id = hashHex;
   }
+
+  /**
+   * ツリーを探索して、指定されたnameのファイルを取得します。
+   * @param name 取得するファイルの名前
+   * @returns 指定された名前のファイルが見つかった場合はBlobFileオブジェクト、見つからなかった場合はnullを返します。
+   */
+  findFile(name: string): BlobFile | null {
+    for (const key in this.entry) {
+      if (this.entry[key].name === name && this.entry[key] instanceof BlobFile) {
+        return this.entry[key] as BlobFile;
+      }
+      if (this.entry[key] instanceof Tree) {
+        const file = (this.entry[key] as Tree).findFile(name);
+        if (file) {
+          return file;
+        }
+      }
+    }
+    return null;
+  }
 }

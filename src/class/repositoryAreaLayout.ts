@@ -286,6 +286,28 @@ export class RepositoryAreaLayout {
   }
 
   /**
+   * マージボタンを作成する。
+   * @returns 作成されたマージボタンのHTMLButtonElement
+   */
+
+  private static createMergeButton(): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.textContent = "マージ";
+    button.addEventListener("click", async () => {
+      const selectBranch = prompt(`マージ先のブランチ名を入力してください。現在のブランチ名:${Vcs.repository.currentBranch}`);
+      if (selectBranch === null || selectBranch === "") return;
+      if (!Vcs.repository.branchList[selectBranch]) return alert("指定されたブランチは存在しません");
+      const isMerge = await Vcs.repository.merge(selectBranch);
+      if (isMerge == null) {
+        return alert("マージに失敗しました");
+      }
+      RepositoryAreaLayout.createRepositoryArea();
+      WorkingAreaLayout.createWorkingArea();
+    });
+    return button;
+  }
+
+  /**
    * リポジトリエリアのボタンコンテナを作成する。
    * @returns 作成されたボタンコンテナのHTMLDivElement
    */
@@ -294,6 +316,7 @@ export class RepositoryAreaLayout {
     const buttonContainer = document.createElement("div");
     buttonContainer.classList.add("button-container");
     buttonContainer.appendChild(RepositoryAreaLayout.createBranchButton());
+    buttonContainer.appendChild(RepositoryAreaLayout.createMergeButton());
     buttonContainer.appendChild(RepositoryAreaLayout.createCheckoutButton());
     return buttonContainer;
   }

@@ -138,7 +138,7 @@ export class Repository {
    * @returns 切り替えたブランチの名前を返す。存在しないブランチ名が渡された場合はnullを返す。
    */
 
-  checkOut(id: string): string | null{
+  checkOut(id: string): string | null {
     if (this.commitList[id]) {
       this.head = id;
       this.currentBranch = this.commitList[id].getBranch();
@@ -152,7 +152,7 @@ export class Repository {
    * @param branchName - マージ先のブランチ名
    * @returns マージが成功した場合はコミットのIDを返す。失敗した場合はnullを返す。
    */
-  merge(branchName: string) {
+  async merge(branchName: string) {
     // マージ先の最新コミット
     const targetCommit = this.searchBranch(branchName);
 
@@ -166,39 +166,53 @@ export class Repository {
     if (baseCommit == null) return null;
 
     // 共通の親コミットを元に、マージ先と元のブランチの差分ファイルを取得
-    const changeFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit);
+    const changeFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit)[0];
+    const conflictFiles = this.checkChangeFiles(targetCommit, currentCommit, baseCommit)[1];
+    // マージコミットのID
     let commitID;
+    // 引数のブランチ名を現在のブランチに変更
+    const currentBranch = this.currentBranch;
     this.currentBranch = branchName;
-    if (changeFiles[1].length === 0) {
+    if (conflictFiles.length === 0) {
       // コンフリクトがない場合
-      this.stage(changeFiles[0]);
-      commitID = this.commit(`merge ${this.currentBranch} to ${branchName}`);
+      this.stage(changeFiles);
+      commitID = await this.commit(`merge ${currentBranch} to ${branchName}`);
     } else {
       // コンフリクトがある場合
-      this.resolveConflict(changeFiles[1], targetCommit, currentCommit);
-      commitID = this.commit(`merge ${this.currentBranch} to ${branchName}`);
+      await this.resolveConflict(conflictFiles, targetCommit, currentCommit);
+      commitID = await this.commit(`merge ${currentBranch} to ${branchName}`);
     }
-    this.checkOut(branchName);
+    this.checkOut(commitID);
     return commitID;
   }
 
   /**
    * コンフリクトを解決する。
    * @param files - コンフリクトしているファイルの配列
-   * @param _targetCommitID - マージ先のコミットID
+   * @param targetCommitID - マージ先のコミットID
    * @param currentCommitID - 現在のコミットID
    */
-  resolveConflict(files: BlobFile[], _targetCommitID: string, _currentCommitID: string): void {
+  async resolveConflict(files: BlobFile[], targetCommitID: string, currentCommitID: string): Promise<void> {
     // filesには配列でオブジェクトが入っている
     // ユーザーに選択肢を表示し、選択されたファイルをステージングする
     for (const file of files) {
-      const choice = prompt(`Which content do you want to stage for file ${file.name}? (target/current)`);
+      const choice = await new Promise<string | null>((resolve) => {
+        resolve(
+          prompt(
+            `コンフリクトが発生しています。target(マージ先)/current(マージ元)のどちらのファイルをコミットしますか？ ファイル名:${file.name}? (target/current)`
+          )
+        );
+      });
+      if (choice === null) return alert("targetかcurrentを入力してください。");
+
       if (choice === "target") {
-        this.stage([file]);
+        const targetFile = this.commitList[targetCommitID].tree.findFile(file.name);
+        if (targetFile === null) return alert("予期せぬエラーが発生しました。");
+        this.stage([targetFile]);
       } else if (choice === "current") {
-        this.stage([file]);
-      } else {
-        console.log("Invalid choice. File remains un-staged.");
+        const currentFile = this.commitList[currentCommitID].tree.findFile(file.name);
+        if (currentFile === null) return alert("予期せぬエラーが発生しました。");
+        this.stage([currentFile]);
       }
     }
   }
@@ -211,6 +225,7 @@ export class Repository {
    * @returns ファイルの変更とコンフリクトを返す。[変更ファイル, コンフリクトファイル]
    */
   checkChangeFiles(target: string, current: string, base: string): [BlobFile[], BlobFile[]] {
+    // 変更ファイルとコンフリクトファイルを格納する配列
     const changeFiles: BlobFile[] = [];
     const conflictFiles: BlobFile[] = [];
 
@@ -219,26 +234,26 @@ export class Repository {
     const targetCommit = this.commitList[target];
     const currentCommit = this.commitList[current];
 
+    const serachTreeAddFile = (tree: Tree, files: { [name: string]: BlobFile }): {} => {
+      for (const content of Object.values(tree.entry)) {
+        if (content instanceof BlobFile) {
+          files[content.name] = content;
+        } else if (content instanceof Tree) {
+          serachTreeAddFile(content, files);
+        }
+      }
+      return files;
+    };
+
     // base, target, currentのファイルを取得
     const baseFiles: { [name: string]: BlobFile } = {};
-    Object.values(baseCommit.tree.entry).forEach((content: BlobFile | Tree | Folder) => {
-      if (content instanceof BlobFile) {
-        baseFiles[content.name] = content;
-      }
-    });
+    serachTreeAddFile(baseCommit.tree, baseFiles);
+
     const currentFiles: { [name: string]: BlobFile } = {};
-    Object.values(currentCommit.tree.entry).forEach((content: BlobFile | Tree | Folder) => {
-      if (content instanceof BlobFile) {
-        currentFiles[content.name] = content;
-      }
-    });
+    serachTreeAddFile(currentCommit.tree, currentFiles);
 
     const targetFiles: { [name: string]: BlobFile } = {};
-    Object.values(targetCommit.tree.entry).forEach((content: BlobFile | Tree | Folder) => {
-      if (content instanceof BlobFile) {
-        targetFiles[content.name] = content;
-      }
-    });
+    serachTreeAddFile(targetCommit.tree, targetFiles);
 
     // currentとtargetの独自のファイルを抽出。
     for (const fileName in currentFiles) {
@@ -249,12 +264,18 @@ export class Repository {
       if (!currentFiles[fileName]) changeFiles.push(targetFiles[fileName]);
     }
 
-    //おそらく現状、currentとtargetでそれぞれ新しく同じ名前のファイルを作った場合、コンフリクトが起きない。
     // 共通のファイルを取得
     const commonFiles: { [name: string]: BlobFile } = {};
     for (const file in baseFiles) {
       if (currentFiles[file] && targetFiles[file]) {
         commonFiles[file] = baseFiles[file];
+      }
+    }
+
+    // baseFilesに存在しないファイルで、currentFilesとtargetFilesに存在するファイルを取得
+    for (const file in targetFiles) {
+      if (currentFiles[file] && !commonFiles[file]) {
+        commonFiles[file] = targetFiles[file];
       }
     }
 
@@ -264,12 +285,15 @@ export class Repository {
       const currentFile = currentFiles[fileName];
       const baseFile = baseFiles[fileName];
 
-      if (targetFile.id !== currentFile.id) {
-        if (targetFile.id === baseFile.id && currentFile.id !== baseFile.id) {
+      if (targetFile.getId() !== currentFile.getId()) {
+        if (targetFile.getId() === baseFile.getId() && currentFile.getId() !== baseFile.getId()) {
+          // マージ元のファイルだけが変更されている場合
           changeFiles.push(currentFile);
-        } else if (currentFile.id === baseFile.id && targetFile.id !== baseFile.id) {
+        } else if (currentFile.getId() === baseFile.getId() && targetFile.getId() !== baseFile.getId()) {
+          // マージ先のファイルだけが変更されている場合
           changeFiles.push(targetFile);
-        } else {
+        } else if (currentFile.getId() !== baseFile.getId() && targetFile.getId() !== baseFile.getId()) {
+          // 両方のファイルが変更されている場合。つまりコンフリクト
           conflictFiles.push(commonFiles[fileName]);
         }
       }
@@ -285,6 +309,7 @@ export class Repository {
    * @returns 共通の親コミットのIDを返す。共通の親コミットが存在しない場合はnullを返す。
    */
   findBaseCommit(targetCommitID: string, currentCommitID: string): string | null {
+    // マージ先と現在のコミットの親コミットを取得
     const targetCommitParents = new Set();
     const currentCommitParents = new Set();
 
