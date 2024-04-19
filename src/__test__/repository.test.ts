@@ -51,14 +51,14 @@ describe("Repositoryクラスのテスト", () => {
     expect(repository.currentBranch).toEqual("master");
     const branchHead = await repository.createBranch("testBranch", initCommitID);
     expect(repository.branchList).toMatchObject({ testBranch: branchHead });
-    repository.checkOut("testBranch");
+    repository.checkOut(branchHead as string);
     const testBranchFile = await BlobFile.init("testBranchFile", "このファイルはtestBranchのファイルで、masterには存在しない。", "/");
     rootFolder.insertContent(testBranchFile);
     repository.stage(Object.values(rootFolder.contents) as BlobFile[]);
     const branchCommitID = await repository.commit("testBranchでコミット");
     expect(repository.currentBranch).toEqual("testBranch");
     expect(repository.head).toBe(branchCommitID);
-    repository.checkOut("master");
+    repository.checkOut(repository.branchList["master"] as string);
     expect(repository.currentBranch).toEqual("master");
   });
 
@@ -87,8 +87,8 @@ describe("Repositoryクラスのテスト", () => {
     const firstCommitID = await repository.commit("初回コミット");
     repository.commitList[firstCommitID];
     expect(repository.currentBranch).toEqual("master");
-    repository.createBranch("testBranch", firstCommitID);
-    repository.checkOut("testBranch");
+    const head = await repository.createBranch("testBranch", firstCommitID);
+    repository.checkOut(head as string);
     expect(repository.currentBranch).toEqual("testBranch");
     const secondFile = await BlobFile.init("secondFile", "2回目のコミットファイル", "/");
     repository.stage([secondFile]);
@@ -97,9 +97,9 @@ describe("Repositoryクラスのテスト", () => {
     await repository.merge("master");
     expect(repository.currentBranch).toEqual("master");
     expect(Object.keys(repository.commitList)).toHaveLength(4);
-    repository.checkOut("testBranch");
+    repository.checkOut(repository.branchList["testBranch"] as string);
 
-    repository.checkOut("master");
+    repository.checkOut(repository.branchList["master"] as string);
   });
 
   test("ステージングに入れていないファイルが3回目のコミットでスナップショットとして反映されることを確認する", async () => {
@@ -111,7 +111,7 @@ describe("Repositoryクラスのテスト", () => {
     const file2 = await BlobFile.init("stagedTestFile2", "ステージングテスト用ファイル2", "/");
     rootFolder.insertContent(file2);
     repository.stage([file2]);
-   await repository.commit("2回目のコミット");
+    await repository.commit("2回目のコミット");
 
     // 3回目のコミット
     const file3 = await BlobFile.init("stagedTestFile3", "ステージングテスト用ファイル3", "/");
