@@ -76,20 +76,24 @@ export class Layout {
   static initPage(): void {
     // initボタンの作成 および クリック時のイベントリスナーの追加
     const initButton = document.createElement("button");
+    initButton.classList.add("init-button");
     initButton.textContent = "Init";
+    initButton.addEventListener("mouseover", () => (initButton.textContent = "Click here!!"));
+    initButton.addEventListener("mouseout", () => (initButton.textContent = "Init"));
     initButton.addEventListener("click", () => Layout.initVCSPage());
-    initButton.style.display = "block";
-    initButton.style.margin = "auto";
 
     // タイトル作成
     const title = document.createElement("h1");
+    title.classList.add("title");
     title.textContent = "VVT";
-    title.style.textAlign = "center";
 
     // サブタイトル作成
-    const subTitle = document.createElement("p");
-    subTitle.textContent = "VCS Visual Tutorial";
-    subTitle.style.textAlign = "center";
+    const subTitle = document.createElement("div");
+    subTitle.classList.add("subTitle");
+    subTitle.innerHTML = `
+    <p>Vcs Visual Tutorial<p>
+    <p class="subTitle-last-p">based on Git<p>
+    `;
 
     // HTMLファイルにあるinitページに要素を追加
     const initPageDiv = document.getElementById("initPage");

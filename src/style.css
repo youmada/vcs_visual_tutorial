@@ -34,6 +34,58 @@ h1 {
   line-height: 1.1;
 }
 
+#initPage {
+  width: 100vw;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.title {
+  margin: auto;
+  padding: 10px;
+  text-align: center;
+  font-size: 5rem;
+  color: black;
+}
+
+.subTitle {
+  margin: auto;
+  padding: 10px;
+  text-align: center;
+}
+
+.subTitle p {
+  margin: 0;
+  text-align: center;
+  font-size: 2rem;
+  color: rgb(92, 92, 92);
+}
+
+.subTitle .subTitle-last-p {
+  font-size: 1.5rem;
+}
+
+.init-button {
+  display: block;
+  margin: auto;
+  padding: 10px;
+  min-width: 300px;
+  text-align: center;
+  background-color: #949494;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 2rem;
+  transition: background-color 1s ease;
+}
+
+.init-button:hover {
+  background-color: #7a7a7a;
+}
+
 /* 左右分割レイアウトのスタイル */
 .container {
   display: flex;
@@ -225,7 +277,6 @@ h1 {
 svg {
   overflow: auto;
 }
-
 
 @media (prefers-color-scheme: light) {
   :root {
