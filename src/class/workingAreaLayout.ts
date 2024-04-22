@@ -192,12 +192,13 @@ export class WorkingAreaLayout {
         showModal<fileData>("ファイル編集", WorkingAreaLayout.updateFileModal(item), {}, async (formData: FormData<fileData>) => {
           const textInput = document.getElementById("fileText") as HTMLInputElement;
           formData.text = textInput.value;
-          // ファイルを更新した場合、ID再生成と、changedFilesに追加。また、WorkingAreaとStagingAreaを再描画
+          // ファイルを更新した場合、ID再生成と、changedFilesに追加。
           const prevId = item.getId();
           item.updateText(formData.text);
           await item.updateId();
           const newFile = item;
           Vcs.checkChangeFile(newFile, prevId);
+          // WorkingAreaとStagingAreaを再描画
           WorkingAreaLayout.createWorkingArea();
           StagingAreaLayout.createStagingArea();
         });

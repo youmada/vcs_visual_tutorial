@@ -121,6 +121,11 @@ export class StagingAreaLayout {
    */
   private static commitBtn() {
     return StagingAreaLayout.createButton("コミット", () => {
+      // ステージングエリアにあるファイルがない場合、エラーを表示
+      if (Object.keys(Vcs.repository.index.stagedFiles).length === 0) {
+        alert("ステージングエリアにファイルがありません");
+        return;
+      }
       // 過去のコミットにチェックアウトしている時にブランチを作っていない状態でコミットしようとした場合。エラーを表示。
       const currentCommit = Vcs.repository.head; // 現在のコミットID
       // 現在のコミットに子コミットが存在するかどうか
