@@ -99,14 +99,13 @@ export class WorkingAreaLayout {
 
     // contentsが空の場合、ファイルやフォルダが存在しない旨を表示
     if (Object.keys(contents).length == 0) {
-      fileDisplayArea.innerHTML = `
-          no file or folder
-          `;
+      fileDisplayArea.textContent = "ファイルやフォルダが存在しません。";
     }
     // currentParentが、ルートディレクトリ以外の場合、一つ上の階層に戻るボタンを表示
     if (Contents.currentParent.name !== "root") {
       const backButton = document.createElement("button");
-      backButton.textContent = "go back to prev level";
+      backButton.classList.add("level-back-button");
+      backButton.textContent = "一つ上の階層に戻る";
       backButton.addEventListener("click", () => {
         Contents.prevLevel();
         WorkingAreaLayout.createWorkingArea();
@@ -128,16 +127,12 @@ export class WorkingAreaLayout {
     // contentsの各要素を表示 contentsが存在しない場合は、何も表示しない
     for (const content in contents) {
       const fileEle = document.createElement("div");
+      fileEle.classList.add("file");
       if (contents[content] instanceof BlobFile) {
-        fileEle.innerHTML = `
-          <p>${content}</p>
-          <p>type::file</p>
-          `;
+        fileEle.textContent = `${content}`;
       } else if (contents[content] instanceof Folder) {
-        fileEle.innerHTML = `
-          <p>${content}</p>
-          <p>type::folder</p>
-          `;
+        fileEle.classList.add("folder");
+        fileEle.textContent = `${content}`;
       }
       fileArea.appendChild(fileEle);
       WorkingAreaLayout.boubleClickHandler(contents[content], fileEle);
@@ -214,8 +209,8 @@ export class WorkingAreaLayout {
   static createWorkingArea(): HTMLDivElement {
     // 初期化する
     Layout.working.innerHTML = `
-    <h3>Working</h3>
-    <p>currentLevel::${Contents.currentParent.name}</p>
+    <h3>ワーキングエリア</h3>
+    <p>現在の階層は${Contents.currentParent.name}です</p>
     `;
     Layout.working.appendChild(WorkingAreaLayout.fileDisplayArea());
     Layout.working.appendChild(WorkingAreaLayout.buttonContainer());
