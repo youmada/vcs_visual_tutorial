@@ -280,6 +280,11 @@ export class RepositoryAreaLayout {
     const button = document.createElement("button");
     button.textContent = "ブランチを生成";
     button.addEventListener("click", async () => {
+      if (Vcs.repository.head === null) return alert("コミットが存在しません");
+      if (Vcs.changeFiles.length > 0 || Object.keys(Vcs.repository.index.stagedFiles).length > 0) {
+        const userResponse = confirm("ファイルに変更があるため、このまま操作を実行すると、編集内容が消えてしまいます。操作を続行しますか？");
+        if (!userResponse) return;
+      }
       if (RepositoryAreaLayout.highlight.length === 0) return alert("ブランチを生成するコミットをクリックしてください");
       const branchName = prompt("ブランチ名を入力してください");
       if (branchName === null || branchName === "") return;
@@ -300,6 +305,10 @@ export class RepositoryAreaLayout {
     button.textContent = "チェックアウト";
     button.addEventListener("click", async () => {
       if (RepositoryAreaLayout.highlight.length === 0) return alert("チェックアウトするコミットをクリックしてください");
+      if (Vcs.changeFiles.length > 0 || Object.keys(Vcs.repository.index.stagedFiles).length > 0) {
+        const userResponse = confirm("ファイルに変更があるため、このまま操作を実行すると、編集内容が消えてしまいます。操作を続行しますか？");
+        if (!userResponse) return;
+      }
       const chosenCommitId = RepositoryAreaLayout.highlight[0].getAttribute("data-commit-id");
       Vcs.repository.checkOut(chosenCommitId!);
       await Contents.checkoutHandler(Vcs.repository.commitList[chosenCommitId!].tree);
@@ -320,6 +329,12 @@ export class RepositoryAreaLayout {
     const button = document.createElement("button");
     button.textContent = "マージ";
     button.addEventListener("click", async () => {
+      console.log(Object.keys(Vcs.repository.branchList).length);
+      if (Object.keys(Vcs.repository.branchList).length < 2) return alert("マージするためには、ブランチを2つ以上作成してください");
+      if (Vcs.changeFiles.length > 0 || Object.keys(Vcs.repository.index.stagedFiles).length > 0) {
+        const userResponse = confirm("ファイルに変更があるため、このまま操作を実行すると、編集内容が消えてしまいます。操作を続行しますか？");
+        if (!userResponse) return;
+      }
       const selectBranch = prompt(`マージ先のブランチ名を入力してください。現在のブランチ名:${Vcs.repository.currentBranch}`);
       if (selectBranch === null || selectBranch === "") return;
       if (selectBranch === Vcs.repository.currentBranch) return alert("同じブランチにマージすることはできません");
