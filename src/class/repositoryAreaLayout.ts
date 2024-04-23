@@ -75,6 +75,31 @@ export class RepositoryAreaLayout {
     if (commit.getId() === Vcs.repository.head) {
       commitElement.setAttribute("fill", "skyblue");
     }
+
+    // ホバー時にコミットメッセージを表示する。
+    commitElement.addEventListener("mouseover", () => {
+      const parent = document.getElementsByClassName("commit-tree")[0];
+      if (parent === null) return;
+      const balloon = document.createElement("div");
+      balloon.classList.add("commit-balloon");
+      balloon.style.width = `${Math.max(200, commit.message.length * 10)}px`;
+      balloon.style.height = `${Math.max(100, commit.message.length * 5)}px`;
+      balloon.style.top = `${y - 200}px`;
+      balloon.style.left = `${x-40}px`;
+      balloon.textContent = commit.message;
+      parent.appendChild(balloon);
+    });
+
+    // ホバーが外れたらコミットメッセージを非表示にする。
+    commitElement.addEventListener("mouseout", () => {
+      const parent = document.getElementsByClassName("commit-tree")[0];
+      if (parent === null) return;
+      const ballon = parent.querySelector(".commit-balloon");
+      if (ballon && parent) {
+        parent.removeChild(ballon);
+      }
+    });
+
     // クリックイベントリスナーを追加
     commitElement.addEventListener("click", () => {
       RepositoryAreaLayout.highlightHandler(commitElement);
@@ -92,6 +117,7 @@ export class RepositoryAreaLayout {
     Layout.repository.appendChild(commitTree);
     // SVG要素を作成し、それをコミットツリーに追加
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("id", "commit-tree-svg");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
     commitTree.appendChild(svg);
