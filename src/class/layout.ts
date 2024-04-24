@@ -1,7 +1,18 @@
-import { toggleDisplay } from "../util";
+import { manageModals, toggleDisplay } from "../util";
+import { Modal } from "./modal";
 import { RepositoryAreaLayout } from "./repositoryAreaLayout";
 import { StagingAreaLayout } from "./stagingAreaLayout";
 import { WorkingAreaLayout } from "./workingAreaLayout";
+
+// vcsページに切り替えた時に最初に表示するモーダル
+const startModal = [
+  new Modal(
+    "VVTへようこそ！！",
+    "",
+    "",
+    "このアプリでは、Gitベースの擬似的なバージョン管理ツール(vcs)を通してvcsの基本的な操作を学習して行きましょう！"
+  ),
+];
 
 /**
  * レイアウトクラス
@@ -130,7 +141,20 @@ export class Layout {
       Layout.rightContainer.appendChild(StagingAreaLayout.createStagingArea());
       Layout.rightContainer.appendChild(WorkingAreaLayout.createWorkingArea());
 
+      // vcsアプリの使い方を表示する?ボタンを作成。
+      const howToUseButton = document.createElement("button");
+      howToUseButton.classList.add("how-to-use-button");
+      howToUseButton.textContent = "?";
+      howToUseButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (document.body.contains(document.querySelector(".modal-background"))) {
+          return;
+        }
+        manageModals(startModal);
+      });
+
       // vcsページに要素を追加
+      Layout.rightContainer.appendChild(howToUseButton);
       vcsPageDiv.appendChild(Layout.container);
     }
   }
