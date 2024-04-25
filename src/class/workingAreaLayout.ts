@@ -23,6 +23,7 @@ export class WorkingAreaLayout {
    */
   private static createButton(text: string, modalTitle: string, modalContent: HTMLElement, onSubmit: (formData: FormData<any>) => Promise<void>) {
     const button = document.createElement("button");
+    button.classList.add("button");
     button.textContent = text;
     button.addEventListener("click", (event) => {
       event.preventDefault();

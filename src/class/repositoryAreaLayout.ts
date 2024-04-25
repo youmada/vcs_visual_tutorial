@@ -85,7 +85,7 @@ export class RepositoryAreaLayout {
       balloon.style.width = `${Math.max(200, commit.message.length * 10)}px`;
       balloon.style.height = `${Math.max(100, commit.message.length * 5)}px`;
       balloon.style.top = `${y - 200}px`;
-      balloon.style.left = `${x-40}px`;
+      balloon.style.left = `${x - 40}px`;
       balloon.textContent = commit.message;
       parent.appendChild(balloon);
     });
@@ -304,6 +304,7 @@ export class RepositoryAreaLayout {
    */
   private static createBranchButton(): HTMLButtonElement {
     const button = document.createElement("button");
+    button.classList.add("button");
     button.textContent = "ブランチを生成";
     button.addEventListener("click", async () => {
       if (Vcs.repository.head === null) return alert("コミットが存在しません");
@@ -328,6 +329,7 @@ export class RepositoryAreaLayout {
 
   private static createCheckoutButton(): HTMLButtonElement {
     const button = document.createElement("button");
+    button.classList.add("button");
     button.textContent = "チェックアウト";
     button.addEventListener("click", async () => {
       if (RepositoryAreaLayout.highlight.length === 0) return alert("チェックアウトするコミットをクリックしてください");
@@ -353,6 +355,7 @@ export class RepositoryAreaLayout {
 
   private static createMergeButton(): HTMLButtonElement {
     const button = document.createElement("button");
+    button.classList.add("button");
     button.textContent = "マージ";
     button.addEventListener("click", async () => {
       console.log(Object.keys(Vcs.repository.branchList).length);

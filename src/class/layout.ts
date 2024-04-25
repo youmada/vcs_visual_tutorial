@@ -1,4 +1,4 @@
-import { manageModals, toggleDisplay } from "../util";
+import { createButton, manageModals, showModal, toggleDisplay } from "../util";
 import { Modal } from "./modal";
 import { RepositoryAreaLayout } from "./repositoryAreaLayout";
 import { StagingAreaLayout } from "./stagingAreaLayout";
@@ -12,6 +12,41 @@ const startModal = [
     "",
     "このアプリでは、Gitベースの擬似的なバージョン管理ツール(vcs)を通してvcsの基本的な操作を学習して行きましょう！"
   ),
+];
+
+const howToUseModal = [new Modal("VVTの使い方", "", "", "")];
+
+const guideContent = [
+  {
+    title: "VVTとは？",
+    callback: () => {
+      manageModals(startModal);
+    },
+  },
+  {
+    title: "そもそもVCSとは？",
+    callback: () => {
+      manageModals(startModal);
+    },
+  },
+  {
+    title: "gitとは？",
+    callback: () => {
+      manageModals(startModal);
+    },
+  },
+  {
+    title: "VVTの機能一覧",
+    callback: () => {
+      manageModals(startModal);
+    },
+  },
+  {
+    title: "VVTの使い方",
+    callback: () => {
+      manageModals(startModal);
+    },
+  },
 ];
 
 /**
@@ -91,7 +126,10 @@ export class Layout {
     initButton.textContent = "Init";
     initButton.addEventListener("mouseover", () => (initButton.textContent = "Click here!!"));
     initButton.addEventListener("mouseout", () => (initButton.textContent = "Init"));
-    initButton.addEventListener("click", () => Layout.initVCSPage());
+    initButton.addEventListener("click", () => {
+      Layout.initVCSPage();
+      manageModals(startModal);
+    });
 
     // タイトル作成
     const title = document.createElement("h1");
@@ -150,7 +188,7 @@ export class Layout {
         if (document.body.contains(document.querySelector(".modal-background"))) {
           return;
         }
-        manageModals(startModal);
+        document.body.appendChild(this.createQAModal(guideContent));
       });
 
       // vcsページに要素を追加
@@ -186,5 +224,37 @@ export class Layout {
       Layout.rightContainer.appendChild(WorkingAreaLayout.createWorkingArea());
       vcsPageDiv.appendChild(Layout.container);
     }
+  }
+
+  /**
+   * Q&Aモーダルを生成するメソッド
+   *
+   */
+
+  static createQAModal(guideContent: { title: string; callback: () => void }[]): HTMLDivElement {
+    const qaModal = document.createElement("div");
+    qaModal.classList.add("modal-background");
+    qaModal.addEventListener("click", (e) => {
+      e.preventDefault();
+      document.body.removeChild(qaModal);
+    });
+
+    const qaModalContent = document.createElement("div");
+    qaModalContent.classList.add("modal");
+    qaModalContent.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    const qaModalTitle = document.createElement("h2");
+    qaModalTitle.classList.add("modal-title");
+    qaModalTitle.textContent = "アプリガイド";
+
+    qaModalContent.appendChild(qaModalTitle);
+    qaModal.appendChild(qaModalContent);
+    for (let content of guideContent) {
+      qaModalContent.appendChild(createButton(content.title, () => content.callback()));
+    }
+
+    return qaModal;
   }
 }

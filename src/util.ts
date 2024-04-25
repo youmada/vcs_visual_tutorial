@@ -13,11 +13,26 @@ export const toggleDisplay = (elementId: string, isVisible: boolean) => {
 };
 
 /**
+ * 汎用ボタン関数
+ * @param text - ボタンに表示するテキスト
+ * @param onClick - ボタンがクリックされた時に実行される関数
+ * @returns 作成されたボタン要素
+ */
+
+export const createButton = (text: string, onClick: () => void): HTMLButtonElement => {
+  const button = document.createElement("button");
+  button.classList.add("button");
+  button.textContent = text;
+  button.addEventListener("click", onClick);
+  return button;
+};
+
+/**
  * ユーザーに説明するためのモーダルを管理・操作する関数
  * @param modals - モーダルの情報を格納した配列
  *
  */
-export const manageModals = (modals: Modal[]) => {
+export const manageModals = (modals: Modal[]): void => {
   const startModal = modals[0];
   let currentModalIndex = 0;
   // モーダルのフレームを作成

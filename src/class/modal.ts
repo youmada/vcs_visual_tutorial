@@ -3,12 +3,14 @@ export class Modal {
   private codeBlock: string;
   private modalId: string;
   private innerText: string;
+  callback: Function;
 
-  constructor(titleText: string, codeBlock: string, modalId: string, innerText: string) {
+  constructor(titleText: string, codeBlock: string, modalId: string, innerText: string, callback: Function = () => {}) {
     this.titleText = titleText;
     this.codeBlock = codeBlock;
     this.modalId = modalId;
     this.innerText = innerText;
+    this.callback = callback;
   }
 
   public get title(): string {
@@ -25,5 +27,9 @@ export class Modal {
 
   public get text(): string {
     return this.innerText;
+  }
+
+  call(): Function {
+    return this.callback();
   }
 }

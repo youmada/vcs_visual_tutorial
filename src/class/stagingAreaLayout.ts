@@ -37,6 +37,7 @@ export class StagingAreaLayout {
    */
   static createButton(text: string, fn: () => void): HTMLButtonElement {
     const button = document.createElement("button");
+    button.classList.add("button");
     button.textContent = text;
     button.addEventListener("click", fn);
     return button;
