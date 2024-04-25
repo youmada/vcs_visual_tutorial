@@ -39,48 +39,67 @@ export const manageModals = (modals: Modal[]): void => {
   const background = createModalBackground();
   const frame = createModalFrame();
   // モーダルの中身を作成
-  const innerModal = createModalContent(startModal.title, startModal.text, startModal.code);
+  let innerModal = createModalContent(startModal.title, startModal.text, startModal.code);
   frame.appendChild(innerModal);
+  const buttonContainer = document.createElement("div");
+  buttonContainer.classList.add("Modal-button-container");
+  frame.appendChild(buttonContainer);
   // モーダルを切り替えるためのボタンを作成
-  const nextButton = document.createElement("button");
-  nextButton.textContent = "次へ";
-  nextButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    // 現在のモーダルを取得
-    const currentModal = modals[currentModalIndex++];
-    // 次のモーダルが存在する場合
-    if (currentModal) {
-      // 現在のモーダルを削除
+  const nextButton = createButton("次へ", () => {
+    currentModalIndex += 1;
+    const nextModal = modals[currentModalIndex];
+    if (nextModal) {
+      // 既存のinnerModal要素を削除
       frame.removeChild(innerModal);
-      // 次のモーダルを作成
-      frame.appendChild(createModalContent(currentModal.title, currentModal.text, currentModal.code));
-    } else {
-      // 次のモーダルが存在しない場合はモーダルを閉じる
-      document.body.removeChild(frame);
+      // 新しいinnerModal要素を作成
+      innerModal = createModalContent(nextModal.title, nextModal.text, nextModal.code);
+      // 新しいinnerModal要素を追加
+      frame.appendChild(innerModal);
+      frame.appendChild(buttonContainer);
+      buttonContainer.appendChild(backButton);
+      if (currentModalIndex === modals.length - 1) {
+        buttonContainer.removeChild(nextButton);
+      } else {
+        buttonContainer.appendChild(nextButton);
+      }
     }
   });
 
   // 戻るボタンを作成
-  const backButton = document.createElement("button");
-  backButton.textContent = "戻る";
-  backButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    // 現在のモーダルを取得
-    const currentModal = modals[currentModalIndex--];
-    // 前のモーダルが存在する場合
-    if (currentModal) {
-      // 現在のモーダルを削除
+  const backButton = createButton("戻る", () => {
+    currentModalIndex -= 1;
+    const backModal = modals[currentModalIndex];
+    if (backModal) {
+      // 既存のinnerModal要素を削除
       frame.removeChild(innerModal);
-      // 前のモーダルを作成
-      frame.appendChild(createModalContent(currentModal.title, currentModal.text, currentModal.code));
+      // 新しいinnerModal要素を作成
+      innerModal = createModalContent(backModal.title, backModal.text, backModal.code);
+      // 新しいinnerModal要素を追加
+      frame.appendChild(innerModal);
+      frame.appendChild(buttonContainer);
+      if (currentModalIndex === 0) {
+        buttonContainer.removeChild(backButton);
+      } else {
+        buttonContainer.appendChild(backButton);
+      }
+      buttonContainer.appendChild(nextButton);
     }
   });
-  // モーダルが一つだけの場合は次へボタンを表示しない
-  if (modals.length !== 1) {
-    frame.appendChild(nextButton);
-    frame.appendChild(backButton);
+  // モーダルが複数の時にボタンを表示する
+  if (modals.length > 1) {
+    buttonContainer.appendChild(nextButton);
+    buttonContainer.appendChild(backButton);
+    // 最初のモーダルのときは、戻るボタンを消す
+    if (currentModalIndex === 0) {
+      buttonContainer.removeChild(backButton);
+    }
+    // 最後のモーダルのときは次へボタンを消す
+    if (currentModalIndex === modals.length - 1) {
+      buttonContainer.removeChild(nextButton);
+    }
   }
-  // 最後のモーダルになった時のモーダルを閉じるボタンを作成
+
+  // モーダルを閉じるボタンを作成
   const closeButton = document.createElement("button");
   closeButton.classList.add("modal-close-button");
   closeButton.textContent = "閉じる";
@@ -88,13 +107,8 @@ export const manageModals = (modals: Modal[]): void => {
     e.preventDefault();
     document.body.removeChild(background);
   });
-  if (currentModalIndex === modals.length - 1) {
-    frame.appendChild(closeButton);
-  } else {
-    if (closeButton.hasChildNodes()) {
-      closeButton.removeChild(closeButton);
-    }
-  }
+
+  frame.appendChild(closeButton);
   background.appendChild(frame);
 };
 

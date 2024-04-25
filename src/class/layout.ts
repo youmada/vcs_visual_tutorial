@@ -1,53 +1,8 @@
-import { createButton, manageModals, showModal, toggleDisplay } from "../util";
-import { Modal } from "./modal";
+import { guideContent, startModal } from "../appData";
+import { createButton, manageModals, toggleDisplay } from "../util";
 import { RepositoryAreaLayout } from "./repositoryAreaLayout";
 import { StagingAreaLayout } from "./stagingAreaLayout";
 import { WorkingAreaLayout } from "./workingAreaLayout";
-
-// vcsページに切り替えた時に最初に表示するモーダル
-const startModal = [
-  new Modal(
-    "VVTへようこそ！！",
-    "",
-    "",
-    "このアプリでは、Gitベースの擬似的なバージョン管理ツール(vcs)を通してvcsの基本的な操作を学習して行きましょう！"
-  ),
-];
-
-const howToUseModal = [new Modal("VVTの使い方", "", "", "")];
-
-const guideContent = [
-  {
-    title: "VVTとは？",
-    callback: () => {
-      manageModals(startModal);
-    },
-  },
-  {
-    title: "そもそもVCSとは？",
-    callback: () => {
-      manageModals(startModal);
-    },
-  },
-  {
-    title: "gitとは？",
-    callback: () => {
-      manageModals(startModal);
-    },
-  },
-  {
-    title: "VVTの機能一覧",
-    callback: () => {
-      manageModals(startModal);
-    },
-  },
-  {
-    title: "VVTの使い方",
-    callback: () => {
-      manageModals(startModal);
-    },
-  },
-];
 
 /**
  * レイアウトクラス

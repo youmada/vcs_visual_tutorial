@@ -283,6 +283,12 @@ h1 {
   text-align: center;
 }
 
+.modal-button-container {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+}
+
 /* タイトル */
 .modal h2 {
   margin-top: 0;
