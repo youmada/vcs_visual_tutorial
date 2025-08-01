@@ -1,7 +1,5 @@
-/**
- * @jest-environment jsdom
- */
-import { toggleDisplay, showModal, FormData } from "../util";
+
+import { toggleDisplay, showModal, FormData } from "../util.ts";
 describe("toggleDisplay関数のテスト", () => {
   let document: Document;
   beforeEach(() => {
@@ -55,7 +53,7 @@ describe("showModal関数のテスト", () => {
     const title = "テストモーダル";
     const innerContent = document.createElement("form");
     const formData: FormData<any> = {};
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
 
     // 実行
     showModal(title, innerContent, formData, onSubmit);
@@ -78,7 +76,7 @@ describe("showModal関数のテスト", () => {
     const title = "テストモーダル";
     const innerContent = document.createElement("form");
     const formData: FormData<any> = {};
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
     const modalBackground = document.createElement("div");
     modalBackground.classList.add("modal-background");
     document.body.appendChild(modalBackground);
@@ -98,7 +96,7 @@ describe("showModal関数のテスト", () => {
     const title = "テストモーダル";
     const innerContent = document.createElement("form");
     const formData: FormData<any> = {};
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
     // 実行
     showModal(title, innerContent, formData, onSubmit);
     const closeModal = document.querySelector(".modal-background")!;

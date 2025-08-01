@@ -1,6 +1,6 @@
-import { BlobFile } from "./blobFile";
-import { Folder } from "./folder";
-import { Tree } from "./tree";
+import { BlobFile } from "./blobFile.ts";
+import { Folder } from "./folder.ts";
+import { Tree } from "./tree.ts";
 
 /**
  * アプリケーションのファイルとフォルダのコンテンツを管理するクラス。

@@ -1,4 +1,4 @@
-import { BlobFile } from "./blobFile";
+import { BlobFile } from "./blobFile.ts";
 
 /**
  * インデックスクラスは、ステージングエリアのファイルを管理するためのクラスです。

@@ -1,8 +1,7 @@
-import { Vcs } from "../class/vcs";
-import { BlobFile } from "../class/blobFile";
-import { Folder } from "../class/folder";
-import { Contents } from "../class/contents";
-global.crypto = require("crypto");
+import { Vcs } from "../class/vcs.ts";
+import { BlobFile } from "../class/blobFile.ts";
+import { Folder } from "../class/folder.ts";
+import { Contents } from "../class/contents.ts";
 
 describe("Vcsクラスのテスト", () => {
   let file: BlobFile;

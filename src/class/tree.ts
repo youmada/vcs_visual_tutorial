@@ -1,5 +1,5 @@
-import { BlobFile } from "./blobFile";
-import { Folder } from "./folder";
+import { BlobFile } from "./blobFile.ts";
+import { Folder } from "./folder.ts";
 
 /**
  * Treeクラス。初期化にはinitメソッドを使用します。
@@ -57,7 +57,7 @@ export class Tree {
       return key.join("");
     };
     const msgUint8 = new TextEncoder().encode(combineId());
-    const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
+    const hashBuffer = await window.crypto.subtle.digest("SHA-1", msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
     this.id = hashHex;

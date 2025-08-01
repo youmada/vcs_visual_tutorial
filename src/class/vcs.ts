@@ -1,7 +1,7 @@
-import { BlobFile } from "./blobFile";
-import { Contents } from "./contents";
-import { Folder } from "./folder";
-import { Repository } from "./repository";
+import { BlobFile } from "./blobFile.ts";
+import { Contents } from "./contents.ts";
+import { Folder } from "./folder.ts";
+import { Repository } from "./repository.ts";
 
 /**
  * バージョン管理システムを表すクラス。

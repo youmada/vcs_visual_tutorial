@@ -1,10 +1,9 @@
-import { Repository } from "../class/repository";
-import { Folder } from "../class/folder";
+import { Repository } from "../class/repository.ts";
+import { Folder } from "../class/folder.ts";
 import { Index } from "../class";
-import { BlobFile } from "../class/blobFile";
-import { Commit } from "../class/commit";
-import { Contents } from "../class/contents";
-global.crypto = require("crypto");
+import { BlobFile } from "../class/blobFile.ts";
+import { Commit } from "../class/commit.ts";
+import { Contents } from "../class/contents.ts";
 
 describe("Repositoryクラスのテスト", () => {
   let repository: Repository;

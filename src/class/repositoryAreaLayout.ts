@@ -1,8 +1,8 @@
-import { Commit } from "./commit";
-import { Contents } from "./contents";
-import { Layout } from "./layout";
-import { Vcs } from "./vcs";
-import { WorkingAreaLayout } from "./workingAreaLayout";
+import { Commit } from "./commit.ts";
+import { Contents } from "./contents.ts";
+import { Layout } from "./layout.ts";
+import { Vcs } from "./vcs.ts";
+import { WorkingAreaLayout } from "./workingAreaLayout.ts";
 
 export class RepositoryAreaLayout {
   /**

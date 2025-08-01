@@ -1,13 +1,11 @@
-/**
- * @jest-environment jsdom
- */
-import { Layout } from "../class/layout";
-import * as StagingAreaLayout from "../class/stagingAreaLayout";
-import * as WorkingAreaLayout from "../class/workingAreaLayout";
+
+import { Layout } from "../class/layout.ts";
+import * as StagingAreaLayout from "../class/stagingAreaLayout.ts";
+import * as WorkingAreaLayout from "../class/workingAreaLayout.ts";
 
 describe("Layoutクラスのテスト", () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
     document.body.innerHTML = `
       <div id="initPage"></div>
       <div id="vcsPage"></div>
@@ -54,12 +52,12 @@ describe("Layoutクラスのテスト", () => {
   it("createVcsPageLayoutメソッドのテスト", () => {
     const vcsPageDiv = document.getElementById("vcsPage");
     // モック関数を作成
-    const mockCreateStagingArea = jest.fn().mockReturnValue((Layout.staging = Layout.createVcsElement("Staging", "top")));
-    const mockCreateWorkingArea = jest.fn().mockReturnValue((Layout.working = Layout.createVcsElement("Working", "bottom")));
+    const mockCreateStagingArea = vi.fn().mockReturnValue((Layout.staging = Layout.createVcsElement("Staging", "top")));
+    const mockCreateWorkingArea = vi.fn().mockReturnValue((Layout.working = Layout.createVcsElement("Working", "bottom")));
 
     // モック関数を適用
-    jest.spyOn(StagingAreaLayout.StagingAreaLayout, "createStagingArea").mockImplementation(mockCreateStagingArea);
-    jest.spyOn(WorkingAreaLayout.WorkingAreaLayout, "createWorkingArea").mockImplementation(mockCreateWorkingArea);
+    vi.spyOn(StagingAreaLayout.StagingAreaLayout, "createStagingArea").mockImplementation(mockCreateStagingArea);
+    vi.spyOn(WorkingAreaLayout.WorkingAreaLayout, "createWorkingArea").mockImplementation(mockCreateWorkingArea);
 
     Layout.createVcsPageLayout();
 
@@ -80,12 +78,12 @@ describe("Layoutクラスのテスト", () => {
 
   it("updateVcsPageメソッドのテスト", () => {
     // モック関数を作成
-    const mockCreateStagingArea = jest.fn().mockReturnValue(document.createElement("div"));
-    const mockCreateWorkingArea = jest.fn().mockReturnValue(document.createElement("div"));
+    const mockCreateStagingArea = vi.fn().mockReturnValue(document.createElement("div"));
+    const mockCreateWorkingArea = vi.fn().mockReturnValue(document.createElement("div"));
 
     // モック関数を適用
-    jest.spyOn(StagingAreaLayout.StagingAreaLayout, "createStagingArea").mockImplementation(mockCreateStagingArea);
-    jest.spyOn(WorkingAreaLayout.WorkingAreaLayout, "createWorkingArea").mockImplementation(mockCreateWorkingArea);
+    vi.spyOn(StagingAreaLayout.StagingAreaLayout, "createStagingArea").mockImplementation(mockCreateStagingArea);
+    vi.spyOn(WorkingAreaLayout.WorkingAreaLayout, "createWorkingArea").mockImplementation(mockCreateWorkingArea);
     Layout.updateVcsPage();
 
     // モック関数が呼び出されたことを確認

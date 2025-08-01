@@ -1,6 +1,5 @@
-import { BlobFile } from "../class/blobFile";
-import { Tree } from "../class/tree";
-global.crypto = require("crypto");
+import { BlobFile } from "../class/blobFile.ts";
+import { Tree } from "../class/tree.ts";
 
 describe("ツリーオブジェクトテスト", () => {
   let tree: Tree;

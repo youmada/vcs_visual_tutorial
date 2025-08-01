@@ -1,6 +1,5 @@
-import { Index } from "../class/index";
-import { BlobFile } from "../class/blobFile";
-global.crypto = require("crypto");
+import { Index } from "../class";
+import { BlobFile } from "../class/blobFile.ts";
 describe("インデックスクラステスト", () => {
   let index: Index;
   let file1: BlobFile;

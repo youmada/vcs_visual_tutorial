@@ -1,7 +1,6 @@
-import { Contents } from "../class/contents";
-import { Folder } from "../class/folder";
-import { BlobFile } from "../class/blobFile";
-global.crypto = require("crypto");
+import { Contents } from "../class/contents.ts";
+import { Folder } from "../class/folder.ts";
+import { BlobFile } from "../class/blobFile.ts";
 
 describe("Contents", () => {
   let rootFolder: Folder;

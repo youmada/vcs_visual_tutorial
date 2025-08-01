@@ -1,5 +1,5 @@
-import { BlobFile } from "../class/blobFile";
-global.crypto = require("crypto");
+import { BlobFile } from "../class/blobFile.ts";
+import { describe} from "vitest";
 
 describe("BlobFile", () => {
   let blobFile: BlobFile;

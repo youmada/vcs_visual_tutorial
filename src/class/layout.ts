@@ -1,8 +1,8 @@
-import { guideContent, startModal } from "../appData";
-import { createButton, manageModals, toggleDisplay } from "../util";
-import { RepositoryAreaLayout } from "./repositoryAreaLayout";
-import { StagingAreaLayout } from "./stagingAreaLayout";
-import { WorkingAreaLayout } from "./workingAreaLayout";
+import { guideContent, startModal } from "../appData.ts";
+import { createButton, manageModals, toggleDisplay } from "../util.ts";
+import { RepositoryAreaLayout } from "./repositoryAreaLayout.ts";
+import { StagingAreaLayout } from "./stagingAreaLayout.ts";
+import { WorkingAreaLayout } from "./workingAreaLayout.ts";
 
 /**
  * レイアウトクラス
@@ -95,7 +95,7 @@ export class Layout {
     const subTitle = document.createElement("div");
     subTitle.classList.add("subTitle");
     subTitle.innerHTML = `
-    <p>Vcs Visual Tutorial<p>
+    <p>VCS Visual Tutorial<p>
     <p class="subTitle-last-p">based on Git<p>
     `;
 

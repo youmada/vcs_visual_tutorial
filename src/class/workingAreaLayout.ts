@@ -1,10 +1,10 @@
-import { FormData, showModal } from "../util";
-import { BlobFile } from "./blobFile";
-import { Contents } from "./contents";
-import { Folder } from "./folder";
-import { Layout } from "./layout";
-import { StagingAreaLayout } from "./stagingAreaLayout";
-import { Vcs } from "./vcs";
+import { FormData, showModal } from "../util.ts";
+import { BlobFile } from "./blobFile.ts";
+import { Contents } from "./contents.ts";
+import { Folder } from "./folder.ts";
+import { Layout } from "./layout.ts";
+import { StagingAreaLayout } from "./stagingAreaLayout.ts";
+import { Vcs } from "./vcs.ts";
 
 /**
  * WorkingAreaLayoutクラスは、作業エリアのレイアウトを管理するクラスです。

@@ -1,9 +1,9 @@
 import { Index } from ".";
-import { BlobFile } from "./blobFile";
-import { Commit } from "./commit";
-import { Contents } from "./contents";
-import { Folder } from "./folder";
-import { Tree } from "./tree";
+import { BlobFile } from "./blobFile.ts";
+import { Commit } from "./commit.ts";
+import { Contents } from "./contents.ts";
+import { Folder } from "./folder.ts";
+import { Tree } from "./tree.ts";
 
 /**
  * リポジトリを表すクラスです。

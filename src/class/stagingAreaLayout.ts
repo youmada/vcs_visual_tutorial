@@ -1,7 +1,7 @@
-import { FormData, showModal } from "../util";
-import { Layout } from "./layout";
-import { RepositoryAreaLayout } from "./repositoryAreaLayout";
-import { Vcs } from "./vcs";
+import { FormData, showModal } from "../util.ts";
+import { Layout } from "./layout.ts";
+import { RepositoryAreaLayout } from "./repositoryAreaLayout.ts";
+import { Vcs } from "./vcs.ts";
 
 /**
  * ステージングエリアのレイアウトを管理するクラス。

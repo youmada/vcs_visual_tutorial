@@ -1,4 +1,4 @@
-import { Tree } from "./tree";
+import { Tree } from "./tree.ts";
 /**
  * コミットを表すクラス。
  * initメソッドでコミットを初期化する。
@@ -89,7 +89,7 @@ export class Commit {
   async createId(): Promise<string> {
     const currentDate = new Date();
     const msgUint8 = new TextEncoder().encode(String(currentDate + this.message));
-    const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
+    const hashBuffer = await window.crypto.subtle.digest("SHA-1", msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
     return hashHex;

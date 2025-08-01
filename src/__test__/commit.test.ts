@@ -1,6 +1,5 @@
-import { Commit } from "../class/commit";
-import { Tree } from "../class/tree";
-global.crypto = require("crypto");
+import { Commit } from "../class/commit.ts";
+import { Tree } from "../class/tree.ts";
 
 describe("コミットオブジェクトテスト", () => {
   let commit: Commit;
