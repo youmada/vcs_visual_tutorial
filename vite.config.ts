@@ -6,7 +6,6 @@ export default defineConfig({
         globals: true,
         environment: 'jsdom', // DOMが必要なら
         include: ['src/**/*.test.ts'],
-        setupFiles: ['./vite.setup.ts'],
         coverage: {
             reporter: ['text', 'html'],
         },

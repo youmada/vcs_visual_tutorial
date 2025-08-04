@@ -14,7 +14,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jsdom": "^24.0.0",
     "typescript": "^5.2.2",
-    "vite": "^7.0.6",
+    "vite": "^7.0.0",
     "vitest": "^3.2.4"
   }
 }
